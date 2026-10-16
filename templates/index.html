@@ -533,6 +533,91 @@
       to { transform: translate(-50%, 0); opacity: 1; }
     }
 
+    /* Mobile Top Dashboard & Filter Bar */
+    .mobile-top-bar {
+      background: linear-gradient(180deg, #071E36 0%, #0A2E50 100%);
+      padding: 6px 10px 8px 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      z-index: 1015;
+      flex-shrink: 0;
+    }
+
+    .mobile-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .m-kpi-item {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 6px;
+      padding: 3px 2px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .m-kpi-val {
+      font-size: 0.82rem;
+      font-weight: 800;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .m-kpi-lbl {
+      font-size: 0.58rem;
+      color: rgba(255, 255, 255, 0.85);
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    .mobile-cust-segment {
+      display: flex;
+      background: rgba(0, 0, 0, 0.28);
+      padding: 3px;
+      border-radius: 8px;
+      gap: 4px;
+    }
+
+    .m-cust-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: #CBD5E1;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 6px 2px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .m-cust-btn.active {
+      background: #FFFFFF;
+      color: #0A2E50;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .m-cust-btn[data-type="cj"].active {
+      background: #FFFFFF;
+      color: #0A2E50;
+    }
+
+    .m-cust-btn[data-type="gs"].active {
+      background: #FFFFFF;
+      color: #D35400;
+    }
+
     /* Mobile Responsive Rules */
     @media (max-width: 768px) {
       .app-header {
@@ -637,6 +722,42 @@
       </button>
     </div>
   </header>
+ 
+  <!-- Mobile Quick Dashboard & Customer Filter Bar (Always visible on Mobile) -->
+  <div class="mobile-top-bar d-md-none">
+    <!-- 1. KPI Indicators Strip -->
+    <div class="mobile-kpi-grid">
+      <div class="m-kpi-item">
+        <span class="m-kpi-val text-warning" id="mKpiTotal">0</span>
+        <span class="m-kpi-lbl">Tổng Điểm</span>
+      </div>
+      <div class="m-kpi-item">
+        <span class="m-kpi-val" style="color: #64B5F6;" id="mKpiCJ">0</span>
+        <span class="m-kpi-lbl">Shop CJ</span>
+      </div>
+      <div class="m-kpi-item">
+        <span class="m-kpi-val" style="color: #FFB74D;" id="mKpiGS">0</span>
+        <span class="m-kpi-lbl">Golden</span>
+      </div>
+      <div class="m-kpi-item">
+        <span class="m-kpi-val text-success" id="mKpiGPS">0%</span>
+        <span class="m-kpi-lbl">Có GPS</span>
+      </div>
+    </div>
+
+    <!-- 2. Customer Type Quick Segment -->
+    <div class="mobile-cust-segment">
+      <button type="button" class="m-cust-btn active" data-type="all">
+        <i class="fa-solid fa-layer-group me-1"></i>Cả 2 loại
+      </button>
+      <button type="button" class="m-cust-btn" data-type="cj">
+        <i class="fa-solid fa-circle me-1" style="color: #0A2E50;"></i>Shop CJ
+      </button>
+      <button type="button" class="m-cust-btn" data-type="gs">
+        <i class="fa-solid fa-square me-1" style="color: #D35400;"></i>Golden
+      </button>
+    </div>
+  </div>
 
   <!-- 2. Body -->
   <div class="app-body">
@@ -925,6 +1046,15 @@
       // 1. Update Sidebar Radio Group
       const radio = document.querySelector(`input[name="custType"][value="${type}"]`);
       if (radio) radio.checked = true;
+
+      // 2. Update Mobile Customer Mode Segment Buttons
+      document.querySelectorAll('.m-cust-btn').forEach(btn => {
+        if (btn.getAttribute('data-type') === type) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
 
       // 3. Toggle Visibility & Opacity of UI Options
       const boxGSRange = document.getElementById('boxGSRange');
@@ -1306,6 +1436,16 @@
       document.getElementById('kpiCJ').innerText = filteredCJ.length.toLocaleString();
       document.getElementById('kpiGS').innerText = filteredGS.length.toLocaleString();
       document.getElementById('kpiGPS').innerText = `${gpsPct}%`;
+
+      // Update Mobile KPIs
+      const mTotal = document.getElementById('mKpiTotal');
+      const mCJ = document.getElementById('mKpiCJ');
+      const mGS = document.getElementById('mKpiGS');
+      const mGPS = document.getElementById('mKpiGPS');
+      if (mTotal) mTotal.innerText = totalAll.toLocaleString();
+      if (mCJ) mCJ.innerText = filteredCJ.length.toLocaleString();
+      if (mGS) mGS.innerText = filteredGS.length.toLocaleString();
+      if (mGPS) mGPS.innerText = `${gpsPct}%`;
 
       // Render Map & Table (WITHOUT ANY SLICING - SHOW ALL!)
       renderMap(filteredCJ, filteredGS);
@@ -1899,6 +2039,13 @@
       document.querySelectorAll('input[name="custType"]').forEach(r => {
         r.addEventListener('change', (e) => {
           setCustomerType(e.target.value);
+        });
+      });
+
+      // Customer Type Mode Handlers (Mobile Top Segment Buttons)
+      document.querySelectorAll('.m-cust-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setCustomerType(btn.getAttribute('data-type'));
         });
       });
 
