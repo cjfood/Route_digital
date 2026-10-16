@@ -1,0 +1,21 @@
+# 1. Database SQLite cục bộ (BẮT BUỘC bỏ qua vì 165MB vượt quá giới hạn 100MB của GitHub)
+master_dms.db
+
+# 2. File tạm Python & cache
+__pycache__/
+*.pyc
+*.pyo
+
+# 3. File Excel gốc nội bộ (bảo mật dữ liệu công ty và tránh nặng repo)
+Shop CJ/
+Shop Potential/
+
+# 4. File hệ thống Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# 5. File cấu hình công cụ
+.gemini/
+.vscode/
