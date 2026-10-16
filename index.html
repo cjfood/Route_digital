@@ -403,38 +403,67 @@
     .popup-title { font-weight: 700; font-size: 0.92rem; color: #1A202C; margin-bottom: 4px; }
     .popup-row { margin-bottom: 2px; color: #4A5568; font-size: 0.78rem; }
 
-    /* Popup Action Direction Button (High-Contrast White Text) */
-    .popup-content a.btn-directions,
-    .popup-content a.btn {
-      color: #FFFFFF !important;
+    /* Popup Action Buttons */
+    .popup-content .btn-direct-route {
       font-weight: 700 !important;
       text-decoration: none !important;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.18);
       border-radius: 6px;
-      padding: 6px 12px;
-    }
-    .popup-content a.btn-directions i,
-    .popup-content a.btn-directions span {
       color: #FFFFFF !important;
     }
-    .popup-content a.btn-cj-dir {
+    .popup-content .btn-direct-route-cj {
       background: #0A2E50 !important;
       border: 1px solid #071E36 !important;
+      color: #FFFFFF !important;
     }
-    .popup-content a.btn-cj-dir:hover {
+    .popup-content .btn-direct-route-cj:hover {
       background: #0F406E !important;
       color: #FFFFFF !important;
     }
-    .popup-content a.btn-gs-dir {
+    .popup-content .btn-direct-route-gs {
       background: #D35400 !important;
       border: 1px solid #B93800 !important;
+      color: #FFFFFF !important;
     }
-    .popup-content a.btn-gs-dir:hover {
+    .popup-content .btn-direct-route-gs:hover {
       background: #E67E22 !important;
+      color: #FFFFFF !important;
+    }
+
+    /* Secondary External Google Maps Button (High-Contrast Colored Text) */
+    .popup-content a.btn-gmaps-link {
+      font-weight: 700 !important;
+      text-decoration: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: 6px;
+      padding: 6px 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      transition: all 0.15s ease;
+      font-size: 0.76rem !important;
+    }
+    .popup-content a.btn-cj-gmaps {
+      background: #F1F5F9 !important;
+      color: #0A2E50 !important;
+      border: 1.5px solid #0A2E50 !important;
+    }
+    .popup-content a.btn-cj-gmaps:hover {
+      background: #0A2E50 !important;
+      color: #FFFFFF !important;
+    }
+    .popup-content a.btn-gs-gmaps {
+      background: #FFF7ED !important;
+      color: #C2410C !important;
+      border: 1.5px solid #EA580C !important;
+    }
+    .popup-content a.btn-gs-gmaps:hover {
+      background: #EA580C !important;
       color: #FFFFFF !important;
     }
 
@@ -884,7 +913,10 @@
           <div class="mb-2 mt-2 ps-2 border-start border-3 border-warning" id="boxGSRange">
             <label class="filter-label text-muted" style="font-size:0.7rem;"><i class="fa-solid fa-crosshairs"></i> Bán kính Golden Store so với Shop CJ</label>
             <select class="form-select form-select-sm py-1" id="filterGSRange" style="font-size:0.75rem;">
-              <option value="3km" selected>Trong bán kính 3 km quanh Shop CJ (Khuyên dùng)</option>
+              <option value="1km">Trong bán kính 1 km quanh Shop CJ (Tuyến hẹp / Gần nhất)</option>
+              <option value="1.5km">Trong bán kính 1.5 km quanh Shop CJ</option>
+              <option value="2km">Trong bán kính 2 km quanh Shop CJ</option>
+              <option value="3km" selected>Trong bán kính 3 km quanh Shop CJ (Mặc định)</option>
               <option value="5km">Trong bán kính 5 km quanh Shop CJ</option>
               <option value="territory">Toàn bộ địa bàn (Không giới hạn km)</option>
             </select>
@@ -1279,12 +1311,17 @@
       let filteredGS = [];
       if (showGS) {
         const gsRange = document.getElementById('filterGSRange') ? document.getElementById('filterGSRange').value : '3km';
-        let maxDistKm = 3.0; // Mặc định trong bán kính 3 km
-        let checkRadius = (gsRange === '3km' || gsRange === '5km');
-        if (gsRange === '5km') maxDistKm = 5.0;
+        let maxDistKm = 3.0;
+        let checkRadius = true;
+        if (gsRange === '1km') maxDistKm = 1.0;
+        else if (gsRange === '1.5km') maxDistKm = 1.5;
+        else if (gsRange === '2km') maxDistKm = 2.0;
+        else if (gsRange === '3km') maxDistKm = 3.0;
+        else if (gsRange === '5km') maxDistKm = 5.0;
+        else if (gsRange === 'territory') checkRadius = false;
 
-        // Reference CJ pool (Dùng làm mốc đo bán kính 3km và khoanh vùng)
-        const refPool = (dist || sm || route || sup || freq || week || activeDay) ? 
+        // Reference CJ pool (Dùng làm mốc đo bán kính và khoanh vùng)
+        const refPool = showCJ ? filteredCJ : ((dist || sm || route || sup || freq || week || activeDay) ? 
           cj.filter(r => {
             if (area && norm(r[9]) !== area) return false;
             if (sup && norm(r[10]) !== sup) return false;
@@ -1522,10 +1559,10 @@
             <div class="popup-row"><strong>NPP:</strong> ${r[6] || 'N/A'}</div>
             <div class="popup-row"><strong>Lịch đi:</strong> <span class="badge bg-primary">${r[11] || ''}</span> <span class="badge bg-secondary">${r[12] || ''}</span> (${days.join(', ') || 'Chưa xếp ngày'})</div>
             <div class="mt-2 d-flex flex-column gap-1">
-              <button type="button" class="btn btn-sm btn-primary w-100 py-1 fw-bold text-white shadow-sm" onclick="startDirectRoute(${lat}, ${lon}, '${encodeURIComponent(r[2] || '')}', '${encodeURIComponent(r[1] || '')}', '${encodeURIComponent(r[20] || '')}', 'cj')" style="font-size:0.78rem;">
+              <button type="button" class="btn btn-sm btn-direct-route btn-direct-route-cj w-100 py-1" onclick="startDirectRoute(${lat}, ${lon}, '${encodeURIComponent(r[2] || '')}', '${encodeURIComponent(r[1] || '')}', '${encodeURIComponent(r[20] || '')}', 'cj')" style="font-size:0.78rem;">
                 <i class="fa-solid fa-route me-1"></i> Xem đường đi tại đây (Không rời trang)
               </button>
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 py-1 text-center" style="font-size:0.74rem;">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn-gmaps-link btn-cj-gmaps w-100 text-center">
                 <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Mở Google Maps ngoài
               </a>
             </div>
@@ -1578,10 +1615,10 @@
             <div class="popup-row"><strong>Khu vực:</strong> ${p[7] || ''}</div>
             <div class="popup-row"><strong>Ước tính Sellout/Tháng:</strong> <span class="text-danger fw-bold">${Number(p[9] || 0).toLocaleString()} VNĐ</span></div>
             <div class="mt-2 d-flex flex-column gap-1">
-              <button type="button" class="btn btn-sm w-100 py-1 fw-bold text-white shadow-sm" onclick="startDirectRoute(${lat}, ${lon}, '${encodeURIComponent(p[2] || '')}', '${encodeURIComponent(p[1] || '')}', '${encodeURIComponent(p[8] || '')}', 'gs')" style="background:#D35400; font-size:0.78rem;">
+              <button type="button" class="btn btn-sm btn-direct-route btn-direct-route-gs w-100 py-1" onclick="startDirectRoute(${lat}, ${lon}, '${encodeURIComponent(p[2] || '')}', '${encodeURIComponent(p[1] || '')}', '${encodeURIComponent(p[8] || '')}', 'gs')" style="font-size:0.78rem;">
                 <i class="fa-solid fa-route me-1"></i> Xem đường đi tại đây (Không rời trang)
               </button>
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 py-1 text-center" style="font-size:0.74rem;">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn-gmaps-link btn-gs-gmaps w-100 text-center">
                 <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Mở Google Maps ngoài
               </a>
             </div>
