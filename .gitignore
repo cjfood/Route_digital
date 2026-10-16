@@ -19,3 +19,7 @@ $RECYCLE.BIN/
 # 5. File cấu hình công cụ
 .gemini/
 .vscode/
+
+# 6. Dữ liệu đơn hàng SFA nội bộ (bảo mật đơn hàng, hình ảnh chụp thực địa và báo cáo Excel)
+data_don_hang/
+
