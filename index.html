@@ -460,6 +460,41 @@
     .popup-title { font-weight: 700; font-size: 0.92rem; color: #1A202C; margin-bottom: 4px; }
     .popup-row { margin-bottom: 2px; color: #4A5568; font-size: 0.78rem; }
 
+    /* Popup Action Direction Button (High-Contrast White Text) */
+    .popup-content a.btn-directions,
+    .popup-content a.btn {
+      color: #FFFFFF !important;
+      font-weight: 700 !important;
+      text-decoration: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      border-radius: 6px;
+      padding: 6px 12px;
+    }
+    .popup-content a.btn-directions i,
+    .popup-content a.btn-directions span {
+      color: #FFFFFF !important;
+    }
+    .popup-content a.btn-cj-dir {
+      background: #0A2E50 !important;
+      border: 1px solid #071E36 !important;
+    }
+    .popup-content a.btn-cj-dir:hover {
+      background: #0F406E !important;
+      color: #FFFFFF !important;
+    }
+    .popup-content a.btn-gs-dir {
+      background: #D35400 !important;
+      border: 1px solid #B93800 !important;
+    }
+    .popup-content a.btn-gs-dir:hover {
+      background: #E67E22 !important;
+      color: #FFFFFF !important;
+    }
+
     /* Map Legend */
     .map-legend {
       position: absolute;
@@ -1359,8 +1394,8 @@
             <div class="popup-row"><strong>NPP:</strong> ${r[6] || 'N/A'}</div>
             <div class="popup-row"><strong>Lịch đi:</strong> <span class="badge bg-primary">${r[11] || ''}</span> <span class="badge bg-secondary">${r[12] || ''}</span> (${days.join(', ') || 'Chưa xếp ngày'})</div>
             <div class="mt-2">
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn btn-sm btn-primary w-100 py-1" style="font-size:0.75rem;">
-                <i class="fa-solid fa-diamond-turn-right me-1"></i>Chỉ đường Google Maps ↗
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn btn-sm btn-directions btn-cj-dir w-100 py-1" style="color:#ffffff !important; font-weight:700; font-size:0.78rem;">
+                <i class="fa-solid fa-diamond-turn-right me-1 text-white"></i><span style="color:#ffffff !important;">Chỉ đường Google Maps ↗</span>
               </a>
             </div>
           </div>
@@ -1412,8 +1447,8 @@
             <div class="popup-row"><strong>Khu vực:</strong> ${p[7] || ''}</div>
             <div class="popup-row"><strong>Ước tính Sellout/Tháng:</strong> <span class="text-danger fw-bold">${Number(p[9] || 0).toLocaleString()} VNĐ</span></div>
             <div class="mt-2">
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn btn-sm text-white w-100 py-1 fw-bold" style="background:#D35400; font-size:0.75rem;">
-                <i class="fa-solid fa-diamond-turn-right me-1"></i>Chỉ đường Google Maps ↗
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn btn-sm btn-directions btn-gs-dir w-100 py-1" style="color:#ffffff !important; font-weight:700; font-size:0.78rem;">
+                <i class="fa-solid fa-diamond-turn-right me-1 text-white"></i><span style="color:#ffffff !important;">Chỉ đường Google Maps ↗</span>
               </a>
             </div>
           </div>
