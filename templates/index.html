@@ -913,13 +913,6 @@
             </label>
           </div>
 
-          <div class="form-check form-switch mb-1" id="boxRoutePath">
-            <input class="form-check-input" type="checkbox" id="chkRoutePath" checked>
-            <label class="form-check-label small" for="chkRoutePath">
-              Vẽ lộ trình nối các điểm viếng thăm (CJ)
-            </label>
-          </div>
-
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="chkCluster" checked>
             <label class="form-check-label small" for="chkCluster">
@@ -999,10 +992,6 @@
           </svg>
           <span class="ms-1"><strong>Golden Store (Loại A)</strong>: Giọt nước Cam đậm</span>
         </div>
-        <div class="legend-item" id="legendItemRoute">
-          <div style="width: 14px; height: 3px; background: #1E88E5;"></div>
-          <span>Lộ trình viếng thăm theo thứ</span>
-        </div>
         <div class="legend-item">
           <div style="width: 12px; height: 12px; border-radius: 50%; background: #00E676; border: 2px solid white;"></div>
           <span>Vị trí hiện tại của bạn (GPS)</span>
@@ -1054,7 +1043,6 @@
     let gsClusterGroup = null;
     let plainCJGroup = null;
     let plainGSGroup = null;
-    let routePolyline = null;
     let myLocationMarker = null;
     let currentFilteredCJ = [];
     let currentFilteredGS = [];
@@ -1078,19 +1066,15 @@
         }
       });
 
-      // 3. Toggle Visibility & Opacity of UI Options
+      // 3. Toggle Visibility of Golden Store Radius Options
       const boxGSRange = document.getElementById('boxGSRange');
-      const boxRoutePath = document.getElementById('boxRoutePath');
       if (boxGSRange) boxGSRange.style.display = (type === 'cj') ? 'none' : 'block';
-      if (boxRoutePath) boxRoutePath.style.display = (type === 'gs') ? 'none' : 'block';
 
       // 4. Update Map Legend Item Opacity
       const legCJ = document.getElementById('legendItemCJ');
       const legGS = document.getElementById('legendItemGS');
-      const legRt = document.getElementById('legendItemRoute');
       if (legCJ) legCJ.style.opacity = (type === 'gs') ? '0.35' : '1';
       if (legGS) legGS.style.opacity = (type === 'cj') ? '0.35' : '1';
-      if (legRt) legRt.style.opacity = (type === 'gs') ? '0.35' : '1';
 
       applyFilters();
     }
@@ -1474,11 +1458,6 @@
       plainCJGroup.clearLayers();
       plainGSGroup.clearLayers();
 
-      if (routePolyline) {
-        map.removeLayer(routePolyline);
-        routePolyline = null;
-      }
-
       const useCluster = document.getElementById('chkCluster').checked;
       const showLabels = document.getElementById('chkShowLabels') ? document.getElementById('chkShowLabels').checked : true;
 
@@ -1498,7 +1477,6 @@
       const cjMarkers = [];
       const gsMarkers = [];
       const latlngs = [];
-      const cjRoutePoints = [];
 
       // 1. Render ALL CJ Outlets (Teardrop Pins - 26px x 35px with CJ - Priority zIndex 1000)
       cjList.forEach(r => {
@@ -1507,7 +1485,6 @@
         if (!lat || !lon || lat === 0 || lon === 0) return;
 
         latlngs.push([lat, lon]);
-        cjRoutePoints.push([lat, lon]);
 
         const icon = L.divIcon({
           className: 'custom-marker',
@@ -1646,17 +1623,6 @@
       } else {
         gsMarkers.forEach(m => plainGSGroup.addLayer(m));
         cjMarkers.forEach(m => plainCJGroup.addLayer(m));
-      }
-
-      // Draw Route Path Polyline if day is selected
-      const showRoute = document.getElementById('chkRoutePath').checked;
-      if (showRoute && activeDay && cjRoutePoints.length > 1) {
-        routePolyline = L.polyline(cjRoutePoints, {
-          color: '#1E88E5',
-          weight: 4,
-          opacity: 0.85,
-          dashArray: '6, 8'
-        }).addTo(map);
       }
 
       // Auto fit map bounds if points exist
@@ -2089,9 +2055,6 @@
       // Layer Toggles
       document.getElementById('filterGSRange').addEventListener('change', applyFilters);
       document.getElementById('chkShowLabels').addEventListener('change', () => {
-        renderMap(currentFilteredCJ, currentFilteredGS);
-      });
-      document.getElementById('chkRoutePath').addEventListener('change', () => {
         renderMap(currentFilteredCJ, currentFilteredGS);
       });
       document.getElementById('chkCluster').addEventListener('change', () => {
