@@ -285,6 +285,41 @@
       color: #FFF !important;
     }
 
+    /* Permanent Map Point Labels (Tên Khách Hàng) */
+    .point-label {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+      white-space: nowrap;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid rgba(0, 0, 0, 0.14);
+      pointer-events: auto;
+      cursor: pointer;
+      line-height: 1.3;
+      transition: max-width 0.2s, box-shadow 0.2s;
+    }
+    .point-label:hover {
+      max-width: 320px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      z-index: 99999 !important;
+    }
+    .point-label-cj {
+      color: #0A2E50;
+      border-left: 3.5px solid #0A2E50;
+    }
+    .point-label-gs {
+      color: #B93800;
+      border-left: 3.5px solid #D35400;
+    }
+    .leaflet-tooltip-bottom:before {
+      border-bottom-color: rgba(0, 0, 0, 0.15) !important;
+    }
+
     /* Map View */
     #mapView {
       flex: 1;
@@ -694,11 +729,19 @@
 
           <!-- Phạm vi hiển thị Golden Store -->
           <div class="mb-2 mt-2 ps-2 border-start border-3 border-warning" id="boxGSRange">
-            <label class="filter-label text-muted" style="font-size:0.7rem;"><i class="fa-solid fa-crosshairs"></i> Phạm vi Golden Store</label>
+            <label class="filter-label text-muted" style="font-size:0.7rem;"><i class="fa-solid fa-crosshairs"></i> Bán kính Golden Store so với Shop CJ</label>
             <select class="form-select form-select-sm py-1" id="filterGSRange" style="font-size:0.75rem;">
-              <option value="territory">Quanh địa bàn NPP / NVBH (Khuyên dùng)</option>
-              <option value="area">Toàn bộ Vùng (Tất cả)</option>
+              <option value="3km" selected>Trong bán kính 3 km quanh Shop CJ (Khuyên dùng)</option>
+              <option value="5km">Trong bán kính 5 km quanh Shop CJ</option>
+              <option value="territory">Toàn bộ địa bàn (Không giới hạn km)</option>
             </select>
+          </div>
+
+          <div class="form-check form-switch mb-1">
+            <input class="form-check-input" type="checkbox" id="chkShowLabels" checked>
+            <label class="form-check-label small" for="chkShowLabels">
+              <strong>Hiện nhãn tên KH trên bản đồ</strong>
+            </label>
           </div>
 
           <div class="form-check form-switch mb-1" id="boxRoutePath">
@@ -1082,67 +1125,118 @@
       // 2. Filter Golden Store (Loại A)
       let filteredGS = [];
       if (showGS) {
-        const gsRange = document.getElementById('filterGSRange') ? document.getElementById('filterGSRange').value : 'territory';
+        const gsRange = document.getElementById('filterGSRange') ? document.getElementById('filterGSRange').value : '3km';
+        let maxDistKm = 3.0; // Mặc định trong bán kính 3 km
+        let checkRadius = (gsRange === '3km' || gsRange === '5km');
+        if (gsRange === '5km') maxDistKm = 5.0;
 
-        // Calculate geographic bounding box of sales territory if specific NPP / NVBH / Route / Sup is chosen
-        let hasTerritory = false;
-        let minLat = 999, maxLat = -999, minLon = 999, maxLon = -999;
-        let cjProvinces = new Set();
-
-        if (dist || sm || route || sup) {
-          // Even if Shop CJ points are hidden in 'gs' mode, use territory shops to establish spatial boundaries
-          const territoryPool = cj.filter(r => {
+        // Reference CJ pool (Dùng làm mốc đo bán kính 3km và khoanh vùng)
+        const refPool = (dist || sm || route || sup || freq || week || activeDay) ? 
+          cj.filter(r => {
             if (area && norm(r[9]) !== area) return false;
             if (sup && norm(r[10]) !== sup) return false;
             if (dist && norm(r[6]) !== dist) return false;
             if (sm && norm(r[5]) !== sm) return false;
             if (route && norm(r[7]) !== route) return false;
-            return true;
-          });
-
-          territoryPool.forEach(r => {
-            const lat = r[3];
-            const lon = r[4];
-            if (lat && lon && lat !== 0 && lon !== 0) {
-              if (lat < minLat) minLat = lat;
-              if (lat > maxLat) maxLat = lat;
-              if (lon < minLon) minLon = lon;
-              if (lon > maxLon) maxLon = lon;
-              hasTerritory = true;
+            if (freq && norm(r[11]) !== freq) return false;
+            if (week && norm(r[12]) !== week) return false;
+            if (activeDay) {
+              if (activeDay === 't2' && !r[13]) return false;
+              if (activeDay === 't3' && !r[14]) return false;
+              if (activeDay === 't4' && !r[15]) return false;
+              if (activeDay === 't5' && !r[16]) return false;
+              if (activeDay === 't6' && !r[17]) return false;
+              if (activeDay === 't7' && !r[18]) return false;
+              if (activeDay === 'cn' && !r[19]) return false;
             }
-          });
-          cjProvinces = new Set(territoryPool.map(r => norm(r[21])).filter(Boolean));
-        }
+            return true;
+          }) :
+          (area ? cj.filter(r => norm(r[9]) === area) : cj);
 
-        // Margin of ~5-7 km in degrees (~0.05) around territory
+        // Xây dựng Spatial Grid siêu tốc trên các điểm Shop CJ (~4.4km mỗi ô)
+        const CELL_SIZE = 0.04;
+        const cjGrid = new Map();
+        let hasCJRef = false;
+        let minLat = 999, maxLat = -999, minLon = 999, maxLon = -999;
+        const cjProvinces = new Set();
+
+        refPool.forEach(r => {
+          const lat = r[3];
+          const lon = r[4];
+          if (lat && lon && lat !== 0 && lon !== 0) {
+            hasCJRef = true;
+            if (lat < minLat) minLat = lat;
+            if (lat > maxLat) maxLat = lat;
+            if (lon < minLon) minLon = lon;
+            if (lon > maxLon) maxLon = lon;
+            if (r[21]) cjProvinces.add(norm(r[21]));
+
+            const gx = Math.floor(lat / CELL_SIZE);
+            const gy = Math.floor(lon / CELL_SIZE);
+            const k = gx + '_' + gy;
+            let cell = cjGrid.get(k);
+            if (!cell) { cell = []; cjGrid.set(k, cell); }
+            cell.push([lat, lon]);
+          }
+        });
+
+        const maxDistSq = maxDistKm * maxDistKm;
         const margin = 0.05;
 
         filteredGS = pot.filter(p => {
           // p: [id, code, name, lat, lon, sm, dist, prov, addr, sellout, area_name]
           const pLat = p[3];
           const pLon = p[4];
+          if (!pLat || !pLon || pLat === 0 || pLon === 0) return false;
+
           const pProv = norm(p[7]);
           const pArea = norm(p[10]);
 
-          // 1. Match by Area (Vùng)
+          // 1. Lọc theo Vùng (Area)
           if (area) {
             if (pArea !== area && !pProv.includes(area)) return false;
           }
 
-          // 2. Match by Territory when NPP / NVBH / Route / Sup is filtered
-          if (hasTerritory && gsRange === 'territory') {
-            const inBox = (pLat >= minLat - margin && pLat <= maxLat + margin &&
-                           pLon >= minLon - margin && pLon <= maxLon + margin);
-            const inProv = cjProvinces.size > 0 && cjProvinces.has(pProv);
-            if (!inBox && !inProv) return false;
-          }
-
-          // 3. Search Keyword
+          // 2. Tìm kiếm từ khóa
           if (search) {
             const matchCode = norm(p[1]).toLowerCase().includes(search);
             const matchName = norm(p[2]).toLowerCase().includes(search);
             const matchAddr = norm(p[8]).toLowerCase().includes(search);
             if (!matchCode && !matchName && !matchAddr) return false;
+          }
+
+          // 3. Lọc bán kính (3km hoặc 5km so với điểm bán CJ)
+          if (checkRadius) {
+            if (!hasCJRef) return false;
+
+            const gx = Math.floor(pLat / CELL_SIZE);
+            const gy = Math.floor(pLon / CELL_SIZE);
+            let withinRadius = false;
+            const cosLat = Math.cos(pLat * 0.0174532925);
+
+            for (let dx = -1; dx <= 1 && !withinRadius; dx++) {
+              for (let dy = -1; dy <= 1 && !withinRadius; dy++) {
+                const cell = cjGrid.get((gx + dx) + '_' + (gy + dy));
+                if (!cell) continue;
+                for (let i = 0; i < cell.length; i++) {
+                  const cLat = cell[i][0];
+                  const cLon = cell[i][1];
+                  const dLat = (pLat - cLat) * 111.0;
+                  const dLon = (pLon - cLon) * 111.0 * cosLat;
+                  if (dLat * dLat + dLon * dLon <= maxDistSq) {
+                    withinRadius = true;
+                    break;
+                  }
+                }
+              }
+            }
+            if (!withinRadius) return false;
+          } else if (hasCJRef && (dist || sm || route || sup)) {
+            // Trường hợp 'territory' không giới hạn km
+            const inBox = (pLat >= minLat - margin && pLat <= maxLat + margin &&
+                           pLon >= minLon - margin && pLon <= maxLon + margin);
+            const inProv = cjProvinces.size > 0 && cjProvinces.has(pProv);
+            if (!inBox && !inProv) return false;
           }
 
           return true;
@@ -1208,6 +1302,7 @@
       }
 
       const useCluster = document.getElementById('chkCluster').checked;
+      const showLabels = document.getElementById('chkShowLabels') ? document.getElementById('chkShowLabels').checked : true;
 
       // Handle layer attachments
       if (useCluster) {
@@ -1272,6 +1367,24 @@
         `;
 
         const m = L.marker([lat, lon], { icon }).bindPopup(popup);
+
+        if (showLabels && r[2]) {
+          m.bindTooltip(r[2], {
+            permanent: true,
+            direction: 'bottom',
+            offset: [0, 14],
+            className: 'point-label point-label-cj'
+          });
+          m.on('tooltipopen', function(e) {
+            if (e.tooltip && e.tooltip._container) {
+              e.tooltip._container.onclick = function(ev) {
+                ev.stopPropagation();
+                m.openPopup();
+              };
+            }
+          });
+        }
+
         cjMarkers.push(m);
       });
 
@@ -1307,6 +1420,24 @@
         `;
 
         const m = L.marker([lat, lon], { icon }).bindPopup(popup);
+
+        if (showLabels && p[2]) {
+          m.bindTooltip(p[2], {
+            permanent: true,
+            direction: 'bottom',
+            offset: [0, 16],
+            className: 'point-label point-label-gs'
+          });
+          m.on('tooltipopen', function(e) {
+            if (e.tooltip && e.tooltip._container) {
+              e.tooltip._container.onclick = function(ev) {
+                ev.stopPropagation();
+                m.openPopup();
+              };
+            }
+          });
+        }
+
         gsMarkers.push(m);
       });
 
@@ -1568,6 +1699,9 @@
 
       // Layer Toggles
       document.getElementById('filterGSRange').addEventListener('change', applyFilters);
+      document.getElementById('chkShowLabels').addEventListener('change', () => {
+        renderMap(currentFilteredCJ, currentFilteredGS);
+      });
       document.getElementById('chkRoutePath').addEventListener('change', () => {
         renderMap(currentFilteredCJ, currentFilteredGS);
       });
@@ -1585,6 +1719,8 @@
         document.getElementById('filterFrequency').value = '';
         document.getElementById('filterVisitWeek').value = '';
         document.getElementById('searchKeyword').value = '';
+        document.getElementById('filterGSRange').value = '3km';
+        document.getElementById('chkShowLabels').checked = true;
         activeDay = '';
         document.querySelectorAll('.day-chip').forEach(c => c.classList.remove('active'));
         document.querySelector('.day-chip[data-day=""]').classList.add('active');
