@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>CJ Foods - Tuyến Bán Hàng & Golden Store DMS Map</title>
   
   <!-- CSS Framework & Icons -->
@@ -25,11 +25,14 @@
     
     * { box-sizing: border-box; }
     
-    body {
+    html, body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 0;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      min-height: -webkit-fill-available;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -38,15 +41,20 @@
 
     /* 1. Header */
     .app-header {
-      height: var(--cj-header-h);
+      height: auto;
+      min-height: calc(var(--cj-header-h) + env(safe-area-inset-top, 0px));
+      padding-top: max(8px, env(safe-area-inset-top, 0px));
+      padding-bottom: 8px;
+      padding-left: max(14px, env(safe-area-inset-left, 0px));
+      padding-right: max(14px, env(safe-area-inset-right, 0px));
       background: linear-gradient(135deg, #071E36 0%, #0A2E50 100%);
       color: white;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 14px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.25);
       z-index: 1020;
+      flex-shrink: 0;
     }
 
     .brand-title {
@@ -97,7 +105,8 @@
     .app-body {
       display: flex;
       flex: 1;
-      height: calc(100vh - var(--cj-header-h));
+      min-height: 0;
+      height: auto;
       position: relative;
       overflow: hidden;
     }
@@ -502,9 +511,41 @@
       cursor: pointer;
     }
 
+    /* In-App Direct Route Navigation Card (Seamless In-Page Directions) */
+    .nav-route-card {
+      position: absolute;
+      bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 460px;
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      border: 1px solid #CBD5E1;
+      z-index: 1000;
+      display: none;
+      animation: slideUpNav 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideUpNav {
+      from { transform: translate(-50%, 30px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+
     /* Mobile Responsive Rules */
     @media (max-width: 768px) {
-      .app-header { padding: 0 10px; }
+      .app-header {
+        height: auto;
+        min-height: calc(54px + env(safe-area-inset-top, 0px));
+        padding-top: max(12px, env(safe-area-inset-top, 0px));
+        padding-bottom: 8px;
+        padding-left: max(10px, env(safe-area-inset-left, 0px));
+        padding-right: max(10px, env(safe-area-inset-right, 0px));
+      }
+      .brand-title {
+        font-size: 0.95rem;
+      }
       .brand-title span:last-child { display: none; }
       .kpi-container { display: none !important; }
       
@@ -515,6 +556,8 @@
         left: 0;
         width: 85%;
         max-width: 340px;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
         transform: translateX(-100%);
         z-index: 1050;
       }
@@ -526,6 +569,16 @@
       }
       .map-legend {
         display: none;
+      }
+      #tableView {
+        padding-bottom: 95px;
+      }
+      .mobile-fab-container {
+        bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+      }
+      .nav-route-card {
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        width: calc(100% - 20px);
       }
     }
   </style>
@@ -747,6 +800,34 @@
 
     <!-- Main Content Area -->
     <main class="content-area">
+      <!-- In-App Direct Route Navigation Card (Seamless In-Page Directions) -->
+      <div id="navRouteCard" class="nav-route-card">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <div class="d-flex align-items-center gap-1">
+            <span class="badge px-2 py-1" id="navBadgeType" style="background:#0A2E50;"><i class="fa-solid fa-route me-1"></i>Chỉ đường</span>
+            <span class="text-muted small" id="navRoutingStatus" style="font-size:0.75rem;"></span>
+          </div>
+          <button type="button" class="btn btn-sm btn-danger py-0 px-2 fw-bold" onclick="clearDirectRoute()" title="Đóng dẫn đường">
+            <i class="fa-solid fa-xmark me-1"></i>Đóng
+          </button>
+        </div>
+        <div class="fw-bold text-dark text-truncate fs-6" id="navShopName">Tên Khách Hàng</div>
+        <div class="text-muted small text-truncate" id="navShopAddr" style="font-size:0.75rem;">Địa chỉ</div>
+        <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top">
+          <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-1 text-primary fw-bold" style="font-size:0.9rem;">
+              <i class="fa-solid fa-road"></i> <span id="navDist">-- km</span>
+            </div>
+            <div class="d-flex align-items-center gap-1 text-success fw-bold" style="font-size:0.9rem;">
+              <i class="fa-solid fa-motorcycle"></i> <span id="navTime">-- phút</span>
+            </div>
+          </div>
+          <a id="navGmapsBtn" href="#" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size:0.75rem;">
+            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Google Maps ngoài
+          </a>
+        </div>
+      </div>
+
       <!-- Tab 1: Map View -->
       <div id="mapView"></div>
 
@@ -1300,9 +1381,12 @@
             <div class="popup-row"><strong>NVBH:</strong> ${r[5] || 'N/A'}</div>
             <div class="popup-row"><strong>NPP:</strong> ${r[6] || 'N/A'}</div>
             <div class="popup-row"><strong>Lịch đi:</strong> <span class="badge bg-primary">${r[11] || ''}</span> <span class="badge bg-secondary">${r[12] || ''}</span> (${days.join(', ') || 'Chưa xếp ngày'})</div>
-            <div class="mt-2">
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn btn-sm btn-directions btn-cj-dir w-100 py-1" style="color:#ffffff !important; font-weight:700; font-size:0.78rem;">
-                <i class="fa-solid fa-diamond-turn-right me-1 text-white"></i><span style="color:#ffffff !important;">Chỉ đường Google Maps ↗</span>
+            <div class="mt-2 d-flex flex-column gap-1">
+              <button type="button" class="btn btn-sm btn-primary w-100 py-1 fw-bold text-white shadow-sm" onclick="startDirectRoute(${lat}, ${lon}, '${encodeURIComponent(r[2] || '')}', '${encodeURIComponent(r[1] || '')}', '${encodeURIComponent(r[20] || '')}', 'cj')" style="font-size:0.78rem;">
+                <i class="fa-solid fa-route me-1"></i> Xem đường đi tại đây (Không rời trang)
+              </button>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 py-1 text-center" style="font-size:0.74rem;">
+                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Mở Google Maps ngoài
               </a>
             </div>
           </div>
@@ -1353,9 +1437,12 @@
             <div class="popup-row"><i class="fa-solid fa-location-dot text-danger me-1"></i>${p[8] || ''}</div>
             <div class="popup-row"><strong>Khu vực:</strong> ${p[7] || ''}</div>
             <div class="popup-row"><strong>Ước tính Sellout/Tháng:</strong> <span class="text-danger fw-bold">${Number(p[9] || 0).toLocaleString()} VNĐ</span></div>
-            <div class="mt-2">
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn btn-sm btn-directions btn-gs-dir w-100 py-1" style="color:#ffffff !important; font-weight:700; font-size:0.78rem;">
-                <i class="fa-solid fa-diamond-turn-right me-1 text-white"></i><span style="color:#ffffff !important;">Chỉ đường Google Maps ↗</span>
+            <div class="mt-2 d-flex flex-column gap-1">
+              <button type="button" class="btn btn-sm w-100 py-1 fw-bold text-white shadow-sm" onclick="startDirectRoute(${lat}, ${lon}, '${encodeURIComponent(p[2] || '')}', '${encodeURIComponent(p[1] || '')}', '${encodeURIComponent(p[8] || '')}', 'gs')" style="background:#D35400; font-size:0.78rem;">
+                <i class="fa-solid fa-route me-1"></i> Xem đường đi tại đây (Không rời trang)
+              </button>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 py-1 text-center" style="font-size:0.74rem;">
+                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Mở Google Maps ngoài
               </a>
             </div>
           </div>
@@ -1436,9 +1523,14 @@
             <td>${r[11] || '-'} (${days.join(', ') || '-'})</td>
             <td>
               ${r[3] && r[4] ? `
-                <button class="btn btn-xs btn-outline-primary py-0 px-2" onclick="flyToPoint(${r[3]}, ${r[4]})">
-                  <i class="fa-solid fa-map-pin me-1"></i>Map
-                </button>
+                <div class="d-flex gap-1">
+                  <button class="btn btn-xs btn-outline-primary py-0 px-2" onclick="flyToPoint(${r[3]}, ${r[4]})">
+                    <i class="fa-solid fa-map-pin me-1"></i>Map
+                  </button>
+                  <button class="btn btn-xs btn-primary py-0 px-2" onclick="startDirectRoute(${r[3]}, ${r[4]}, '${encodeURIComponent(r[2] || '')}', '${encodeURIComponent(r[1] || '')}', '${encodeURIComponent(r[20] || '')}', 'cj')" title="Chỉ đường ngay tại đây">
+                    <i class="fa-solid fa-route"></i>
+                  </button>
+                </div>
               ` : '<span class="text-muted small">No GPS</span>'}
             </td>
           </tr>
@@ -1458,9 +1550,14 @@
             <td><span class="badge bg-warning text-dark">Loại A</span></td>
             <td>
               ${p[3] && p[4] ? `
-                <button class="btn btn-xs btn-outline-warning text-dark py-0 px-2" onclick="flyToPoint(${p[3]}, ${p[4]})">
-                  <i class="fa-solid fa-map-pin me-1"></i>Map
-                </button>
+                <div class="d-flex gap-1">
+                  <button class="btn btn-xs btn-outline-warning text-dark py-0 px-2" onclick="flyToPoint(${p[3]}, ${p[4]})">
+                    <i class="fa-solid fa-map-pin me-1"></i>Map
+                  </button>
+                  <button class="btn btn-xs btn-warning text-dark py-0 px-2" onclick="startDirectRoute(${p[3]}, ${p[4]}, '${encodeURIComponent(p[2] || '')}', '${encodeURIComponent(p[1] || '')}', '${encodeURIComponent(p[8] || '')}', 'gs')" title="Chỉ đường ngay tại đây">
+                    <i class="fa-solid fa-route"></i>
+                  </button>
+                </div>
               ` : '<span class="text-muted small">No GPS</span>'}
             </td>
           </tr>
@@ -1493,6 +1590,10 @@
       }, 200);
     };
 
+    let activeNavLayer = null;
+    let activeDestMarker = null;
+    let userCurrentGPS = null;
+
     // My Location GPS Tracker
     function trackMyLocation() {
       if (!navigator.geolocation) {
@@ -1504,14 +1605,15 @@
         pos => {
           const lat = pos.coords.latitude;
           const lon = pos.coords.longitude;
+          userCurrentGPS = { lat, lon };
 
           if (myLocationMarker) map.removeLayer(myLocationMarker);
 
           const myIcon = L.divIcon({
             className: 'my-loc-icon',
-            html: `<div style="width:18px;height:18px;border-radius:50%;background:#00E676;border:3px solid white;box-shadow:0 0 10px rgba(0,230,118,0.8);"></div>`,
-            iconSize: [18, 18],
-            iconAnchor: [9, 9]
+            html: `<div style="width:20px;height:20px;border-radius:50%;background:#00E676;border:3px solid white;box-shadow:0 0 12px rgba(0,230,118,0.9);"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
           });
 
           myLocationMarker = L.marker([lat, lon], { icon: myIcon }).addTo(map);
@@ -1524,6 +1626,174 @@
         { enableHighAccuracy: true, timeout: 10000 }
       );
     }
+
+    // Start in-app direct route (Seamless In-Page Directions)
+    window.startDirectRoute = function(destLat, destLon, encodedName, encodedCode, encodedAddr, type) {
+      if (map) map.closePopup();
+
+      const shopName = decodeURIComponent(encodedName || '');
+      const shopCode = decodeURIComponent(encodedCode || '');
+      const shopAddr = decodeURIComponent(encodedAddr || '');
+
+      // Show Nav Card in loading state
+      const navCard = document.getElementById('navRouteCard');
+      document.getElementById('navShopName').innerText = (shopCode ? `[${shopCode}] ` : '') + (shopName || 'Khách hàng');
+      document.getElementById('navShopAddr').innerText = shopAddr || 'Chưa có địa chỉ chi tiết';
+      document.getElementById('navDist').innerText = 'Đang tính...';
+      document.getElementById('navTime').innerText = '...';
+      document.getElementById('navRoutingStatus').innerText = '(Đang lấy vị trí GPS & dò đường...)';
+      document.getElementById('navGmapsBtn').href = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLon}`;
+      
+      const badge = document.getElementById('navBadgeType');
+      if (type === 'gs') {
+        badge.className = 'badge px-2 py-1';
+        badge.style.background = '#D35400';
+        badge.innerHTML = '<i class="fa-solid fa-star me-1"></i>Golden Store';
+      } else {
+        badge.className = 'badge px-2 py-1';
+        badge.style.background = '#0A2E50';
+        badge.innerHTML = '<i class="fa-solid fa-store me-1"></i>Shop CJ (MCP)';
+      }
+
+      navCard.style.display = 'block';
+
+      // Ensure we are in map view
+      const mapView = document.getElementById('mapView');
+      if (mapView && mapView.style.display === 'none') {
+        document.getElementById('tabMapBtn').click();
+      }
+
+      // Check or fetch GPS location
+      if (userCurrentGPS && userCurrentGPS.lat && userCurrentGPS.lon) {
+        calculateAndDrawRoute(userCurrentGPS.lat, userCurrentGPS.lon, destLat, destLon);
+      } else {
+        if (!navigator.geolocation) {
+          fallbackStraightRoute(null, null, destLat, destLon);
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const uLat = pos.coords.latitude;
+            const uLon = pos.coords.longitude;
+            userCurrentGPS = { lat: uLat, lon: uLon };
+            
+            // Update GPS marker
+            if (myLocationMarker) map.removeLayer(myLocationMarker);
+            const myIcon = L.divIcon({
+              className: 'my-loc-icon',
+              html: `<div style="width:20px;height:20px;border-radius:50%;background:#00E676;border:3px solid white;box-shadow:0 0 12px rgba(0,230,118,0.9);"></div>`,
+              iconSize: [20, 20],
+              iconAnchor: [10, 10]
+            });
+            myLocationMarker = L.marker([uLat, uLon], { icon: myIcon }).addTo(map);
+
+            calculateAndDrawRoute(uLat, uLon, destLat, destLon);
+          },
+          err => {
+            document.getElementById('navRoutingStatus').innerText = '(Chưa bật định vị GPS)';
+            document.getElementById('navDist').innerText = 'Chưa có GPS';
+            document.getElementById('navTime').innerText = '-';
+            alert("Để ứng dụng vẽ đường đi trên bản đồ, vui lòng cho phép quyền truy cập vị trí (GPS) trên điện thoại của bạn.");
+          },
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      }
+    };
+
+    function calculateAndDrawRoute(uLat, uLon, destLat, destLon) {
+      document.getElementById('navRoutingStatus').innerText = '';
+
+      // Call OSRM Driving API (100% free, fast, works in Vietnam)
+      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${uLon},${uLat};${destLon},${destLat}?overview=full&geometries=geojson`;
+
+      fetch(osrmUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.routes && data.routes.length > 0) {
+            const route = data.routes[0];
+            const distMeters = route.distance;
+            const durSeconds = route.duration;
+
+            const distStr = distMeters >= 1000 ? (distMeters / 1000).toFixed(1) + ' km' : Math.round(distMeters) + ' m';
+            const minutes = Math.max(1, Math.round(durSeconds / 60));
+            const timeStr = `~${minutes} phút (xe máy)`;
+
+            document.getElementById('navDist').innerText = distStr;
+            document.getElementById('navTime').innerText = timeStr;
+
+            if (activeNavLayer) map.removeLayer(activeNavLayer);
+            if (activeDestMarker) map.removeLayer(activeDestMarker);
+
+            // Draw route line
+            const geojsonLayer = L.geoJSON(route.geometry, {
+              style: {
+                color: '#2563EB',
+                weight: 6,
+                opacity: 0.88,
+                lineCap: 'round',
+                lineJoin: 'round'
+              }
+            });
+
+            activeNavLayer = geojsonLayer.addTo(map);
+
+            // Add destination pin
+            const destIcon = L.divIcon({
+              className: 'dest-flag-icon',
+              html: `<div style="background:#EF4444;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 3px 8px rgba(0,0,0,0.3);font-size:13px;"><i class="fa-solid fa-flag-checkered"></i></div>`,
+              iconSize: [28, 28],
+              iconAnchor: [14, 28]
+            });
+            activeDestMarker = L.marker([destLat, destLon], { icon: destIcon }).addTo(map);
+
+            map.fitBounds(activeNavLayer.getBounds(), { padding: [60, 60] });
+          } else {
+            fallbackStraightRoute(uLat, uLon, destLat, destLon);
+          }
+        })
+        .catch(err => {
+          console.warn("OSRM error, fallback to direct line:", err);
+          fallbackStraightRoute(uLat, uLon, destLat, destLon);
+        });
+    }
+
+    function fallbackStraightRoute(uLat, uLon, destLat, destLon) {
+      if (activeNavLayer) map.removeLayer(activeNavLayer);
+      if (activeDestMarker) map.removeLayer(activeDestMarker);
+
+      if (uLat && uLon) {
+        const straightDist = L.latLng(uLat, uLon).distanceTo(L.latLng(destLat, destLon));
+        const distStr = straightDist >= 1000 ? (straightDist / 1000).toFixed(1) + ' km' : Math.round(straightDist) + ' m';
+        const minutes = Math.max(1, Math.round((straightDist / 1000) / 25 * 60));
+
+        document.getElementById('navDist').innerText = distStr + ' (đường thẳng)';
+        document.getElementById('navTime').innerText = `~${minutes} phút`;
+
+        activeNavLayer = L.polyline([[uLat, uLon], [destLat, destLon]], {
+          color: '#2563EB',
+          weight: 4,
+          dashArray: '6, 8',
+          opacity: 0.85
+        }).addTo(map);
+
+        map.fitBounds(activeNavLayer.getBounds(), { padding: [60, 60] });
+      }
+    }
+
+    // Clear and close in-app direct route
+    window.clearDirectRoute = function() {
+      if (activeNavLayer) {
+        map.removeLayer(activeNavLayer);
+        activeNavLayer = null;
+      }
+      if (activeDestMarker) {
+        map.removeLayer(activeDestMarker);
+        activeDestMarker = null;
+      }
+      const navCard = document.getElementById('navRouteCard');
+      if (navCard) navCard.style.display = 'none';
+    };
 
     // Client-side Excel Exporter (Directly in Browser)
     function exportToExcel() {
