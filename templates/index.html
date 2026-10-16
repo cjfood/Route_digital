@@ -230,20 +230,20 @@
 
     /* Permanent Map Point Labels (Tên Khách Hàng) */
     .point-label {
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       border-radius: 4px;
-      padding: 2px 7px;
-      font-size: 11px;
+      padding: 1px 6px;
+      font-size: 10px;
       font-weight: 700;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
       white-space: nowrap;
-      max-width: 150px;
+      max-width: 115px;
       overflow: hidden;
       text-overflow: ellipsis;
-      border: 1px solid rgba(0, 0, 0, 0.14);
+      border: 1px solid rgba(0, 0, 0, 0.16);
       pointer-events: auto;
       cursor: pointer;
-      line-height: 1.3;
+      line-height: 1.25;
       transition: max-width 0.2s, box-shadow 0.2s;
     }
     .point-label:hover {
@@ -253,14 +253,14 @@
     }
     .point-label-cj {
       color: #0A2E50;
-      border-left: 3.5px solid #0A2E50;
+      border-left: 3px solid #0A2E50;
     }
     .point-label-gs {
       color: #B93800;
-      border-left: 3.5px solid #D35400;
+      border-left: 3px solid #D35400;
     }
-    .leaflet-tooltip-bottom:before {
-      border-bottom-color: rgba(0, 0, 0, 0.15) !important;
+    .leaflet-tooltip-top:before {
+      border-top-color: rgba(0, 0, 0, 0.15) !important;
     }
 
     /* Map View */
@@ -313,8 +313,8 @@
       background: #0A2E50;
       color: #FFFFFF;
       border-radius: 50%;
-      border: 2.5px solid #FFFFFF;
-      box-shadow: 0 3px 8px rgba(10, 46, 80, 0.7);
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 5px rgba(10, 46, 80, 0.6);
       text-align: center;
       display: flex;
       align-items: center;
@@ -322,28 +322,28 @@
       transition: transform 0.15s ease;
     }
     .marker-cj:hover {
-      transform: scale(1.25);
+      transform: scale(1.3);
       z-index: 9999 !important;
     }
 
-    /* 2. Golden Store: Larger Dark Orange Square (#D35400) */
+    /* 2. Golden Store: Dark Orange Square (#D35400) */
     .marker-gs {
       background: #D35400;
       color: #FFFFFF;
-      border-radius: 6px;
-      border: 2.5px solid #FFE082;
-      box-shadow: 0 3px 10px rgba(211, 84, 0, 0.75);
+      border-radius: 4px;
+      border: 1.8px solid #FFE082;
+      box-shadow: 0 2px 5px rgba(211, 84, 0, 0.65);
       text-align: center;
-      font-size: 13px;
+      font-size: 9.5px;
       font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.4px;
       transition: transform 0.15s ease;
     }
     .marker-gs:hover {
-      transform: scale(1.25);
+      transform: scale(1.3);
       z-index: 9999 !important;
     }
 
@@ -1533,9 +1533,10 @@
 
         const icon = L.divIcon({
           className: 'custom-marker',
-          html: `<div class="marker-cj" style="width:30px; height:30px;"><i class="fa-solid fa-store" style="font-size:12px;"></i></div>`,
-          iconSize: [30, 30],
-          iconAnchor: [15, 15]
+          html: `<div class="marker-cj" style="width:20px; height:20px;"><i class="fa-solid fa-store" style="font-size:9px;"></i></div>`,
+          iconSize: [20, 20],
+          iconAnchor: [10, 10],
+          popupAnchor: [0, -10]
         });
 
         const days = [];
@@ -1574,8 +1575,8 @@
         if (showLabels && r[2]) {
           m.bindTooltip(r[2], {
             permanent: true,
-            direction: 'bottom',
-            offset: [0, 14],
+            direction: 'top',
+            offset: [0, -11],
             className: 'point-label point-label-cj'
           });
           m.on('tooltipopen', function(e) {
@@ -1591,7 +1592,7 @@
         cjMarkers.push(m);
       });
 
-      // 2. Render ALL Golden Stores (Dark Orange Squares - 32px x 32px with GS)
+      // 2. Render ALL Golden Stores (Dark Orange Squares - 20px x 20px with GS)
       gsList.forEach(p => {
         const lat = p[3];
         const lon = p[4];
@@ -1601,9 +1602,10 @@
 
         const icon = L.divIcon({
           className: 'custom-marker',
-          html: `<div class="marker-gs" style="width:32px; height:32px;">GS</div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16]
+          html: `<div class="marker-gs" style="width:20px; height:20px;">GS</div>`,
+          iconSize: [20, 20],
+          iconAnchor: [10, 10],
+          popupAnchor: [0, -10]
         });
 
         const popup = `
@@ -1630,8 +1632,8 @@
         if (showLabels && p[2]) {
           m.bindTooltip(p[2], {
             permanent: true,
-            direction: 'bottom',
-            offset: [0, 16],
+            direction: 'top',
+            offset: [0, -11],
             className: 'point-label point-label-gs'
           });
           m.on('tooltipopen', function(e) {
