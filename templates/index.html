@@ -1400,7 +1400,7 @@
               }
             }
             if (!withinRadius) return false;
-          } else if (hasCJRef && (dist || sm || route || sup)) {
+          } else if (hasCJRef && (dist || sm || sup)) {
             // Trường hợp 'territory' không giới hạn km
             const inBox = (pLat >= minLat - margin && pLat <= maxLat + margin &&
                            pLon >= minLon - margin && pLon <= maxLon + margin);
@@ -1421,7 +1421,6 @@
         if (sup && norm(r[10]) !== sup) return false;
         if (dist && norm(r[6]) !== dist) return false;
         if (sm && norm(r[5]) !== sm) return false;
-        if (route && norm(r[7]) !== route) return false;
         return true;
       });
 
@@ -2032,10 +2031,18 @@
       document.getElementById('btnCloseMobileSidebar').addEventListener('click', closeMobileSidebar);
       document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileSidebar);
 
-      // Cascading Select Listeners
+      // Cascading Select Listeners (Auto-apply on dropdown selection)
       ['filterArea', 'filterSup', 'filterDistributor', 'filterSalesman'].forEach(id => {
         document.getElementById(id).addEventListener('change', () => {
           populateFilters(true);
+          applyFilters();
+        });
+      });
+
+      // Frequency and Week Filters (Auto-apply)
+      ['filterFrequency', 'filterVisitWeek'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+          applyFilters();
         });
       });
 
@@ -2107,6 +2114,7 @@
         document.querySelector('.day-chip[data-day=""]').classList.add('active');
         setCustomerType('all');
         populateFilters(false);
+        applyFilters();
       });
 
       // Tab Switching
