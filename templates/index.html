@@ -1321,27 +1321,29 @@
         else if (gsRange === 'territory') checkRadius = false;
 
         // Reference CJ pool (Dùng làm mốc đo bán kính và khoanh vùng)
-        const refPool = showCJ ? filteredCJ : ((dist || sm || route || sup || freq || week || activeDay) ? 
-          cj.filter(r => {
-            if (area && norm(r[9]) !== area) return false;
-            if (sup && norm(r[10]) !== sup) return false;
-            if (dist && norm(r[6]) !== dist) return false;
-            if (sm && norm(r[5]) !== sm) return false;
-            if (route && norm(r[7]) !== route) return false;
-            if (freq && norm(r[11]) !== freq) return false;
-            if (week && norm(r[12]) !== week) return false;
-            if (activeDay) {
-              if (activeDay === 't2' && !r[13]) return false;
-              if (activeDay === 't3' && !r[14]) return false;
-              if (activeDay === 't4' && !r[15]) return false;
-              if (activeDay === 't5' && !r[16]) return false;
-              if (activeDay === 't6' && !r[17]) return false;
-              if (activeDay === 't7' && !r[18]) return false;
-              if (activeDay === 'cn' && !r[19]) return false;
-            }
-            return true;
-          }) :
-          (area ? cj.filter(r => norm(r[9]) === area) : cj);
+        const refPool = showCJ ? filteredCJ : (
+          (dist || sm || route || sup || freq || week || activeDay) ? 
+            cj.filter(r => {
+              if (area && norm(r[9]) !== area) return false;
+              if (sup && norm(r[10]) !== sup) return false;
+              if (dist && norm(r[6]) !== dist) return false;
+              if (sm && norm(r[5]) !== sm) return false;
+              if (route && norm(r[7]) !== route) return false;
+              if (freq && norm(r[11]) !== freq) return false;
+              if (week && norm(r[12]) !== week) return false;
+              if (activeDay) {
+                if (activeDay === 't2' && !r[13]) return false;
+                if (activeDay === 't3' && !r[14]) return false;
+                if (activeDay === 't4' && !r[15]) return false;
+                if (activeDay === 't5' && !r[16]) return false;
+                if (activeDay === 't6' && !r[17]) return false;
+                if (activeDay === 't7' && !r[18]) return false;
+                if (activeDay === 'cn' && !r[19]) return false;
+              }
+              return true;
+            }) :
+            (area ? cj.filter(r => norm(r[9]) === area) : cj)
+        );
 
         // Xây dựng Spatial Grid siêu tốc trên các điểm Shop CJ (~4.4km mỗi ô)
         const CELL_SIZE = 0.04;
