@@ -841,13 +841,6 @@
 
         <hr class="my-2 text-muted">
 
-        <!-- 5. Tuyến Bán Hàng -->
-        <div class="mb-3">
-          <label class="filter-label"><i class="fa-solid fa-signs-post"></i> Mã / Tên Tuyến Bán Hàng</label>
-          <select class="form-select form-select-sm" id="filterRoute">
-            <option value="">-- Tất cả Tuyến BH --</option>
-          </select>
-        </div>
 
         <!-- 6. Tần suất & Tuần -->
         <div class="row g-2 mb-3">
@@ -1205,7 +1198,6 @@
       const curSup = norm(document.getElementById('filterSup').value);
       const curDist = norm(document.getElementById('filterDistributor').value);
       const curSm = norm(document.getElementById('filterSalesman').value);
-      const curRoute = norm(document.getElementById('filterRoute').value);
 
       let pool = cj;
       if (curArea) pool = pool.filter(r => norm(r[9]) === curArea);
@@ -1241,15 +1233,6 @@
       const salesmen = [...new Set(smPool.map(r => norm(r[5])).filter(Boolean))].sort();
       document.getElementById('filterSalesman').innerHTML = '<option value="">-- Tất cả Nhân Viên --</option>' + 
         salesmen.map(s => `<option value="${s}" ${s === curSm ? 'selected' : ''}>${s}</option>`).join('');
-
-      // Routes
-      const rtPool = curSm ? smPool.filter(r => norm(r[5]) === curSm) : smPool;
-      const routeMap = new Map();
-      rtPool.forEach(r => {
-        if (r[7]) routeMap.set(norm(r[7]), norm(r[8]) || norm(r[7]));
-      });
-      document.getElementById('filterRoute').innerHTML = '<option value="">-- Tất cả Tuyến BH --</option>' + 
-        [...routeMap.entries()].map(([code, name]) => `<option value="${code}" ${code === curRoute ? 'selected' : ''}>${code} - ${name}</option>`).join('');
     }
 
     // Apply Filters Client-Side
@@ -1263,7 +1246,6 @@
       const sup = norm(document.getElementById('filterSup').value);
       const dist = norm(document.getElementById('filterDistributor').value);
       const sm = norm(document.getElementById('filterSalesman').value);
-      const route = norm(document.getElementById('filterRoute').value);
       const freq = norm(document.getElementById('filterFrequency').value);
       const week = norm(document.getElementById('filterVisitWeek').value);
       const search = norm(document.getElementById('searchKeyword').value).toLowerCase();
@@ -1278,7 +1260,6 @@
           if (sup && norm(r[10]) !== sup) return false;
           if (dist && norm(r[6]) !== dist) return false;
           if (sm && norm(r[5]) !== sm) return false;
-          if (route && norm(r[7]) !== route) return false;
           if (freq && norm(r[11]) !== freq) return false;
           if (week && norm(r[12]) !== week) return false;
 
@@ -1319,13 +1300,12 @@
 
         // Reference CJ pool (Dùng làm mốc đo bán kính và khoanh vùng)
         const refPool = showCJ ? filteredCJ : (
-          (dist || sm || route || sup || freq || week || activeDay) ? 
+          (dist || sm || sup || freq || week || activeDay) ? 
             cj.filter(r => {
               if (area && norm(r[9]) !== area) return false;
               if (sup && norm(r[10]) !== sup) return false;
               if (dist && norm(r[6]) !== dist) return false;
               if (sm && norm(r[5]) !== sm) return false;
-              if (route && norm(r[7]) !== route) return false;
               if (freq && norm(r[11]) !== freq) return false;
               if (week && norm(r[12]) !== week) return false;
               if (activeDay) {
@@ -2117,7 +2097,6 @@
         document.getElementById('filterSup').value = '';
         document.getElementById('filterDistributor').value = '';
         document.getElementById('filterSalesman').value = '';
-        document.getElementById('filterRoute').value = '';
         document.getElementById('filterFrequency').value = '';
         document.getElementById('filterVisitWeek').value = '';
         document.getElementById('searchKeyword').value = '';
