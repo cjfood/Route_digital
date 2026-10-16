@@ -254,10 +254,12 @@
     .point-label-cj {
       color: #0A2E50;
       border-left: 3px solid #0A2E50;
+      z-index: 1000 !important;
     }
     .point-label-gs {
       color: #B93800;
       border-left: 3px solid #D35400;
+      z-index: 500 !important;
     }
     .leaflet-tooltip-top:before {
       border-top-color: rgba(0, 0, 0, 0.15) !important;
@@ -322,9 +324,11 @@
       filter: drop-shadow(0 4px 9px rgba(0, 0, 0, 0.6));
       z-index: 9999 !important;
     }
-    .marker-pin svg {
-      display: block;
-      overflow: visible;
+    .marker-pin-cj {
+      z-index: 1000;
+    }
+    .marker-pin-gs {
+      z-index: 500;
     }
 
     /* Legacy compatibility */
@@ -900,10 +904,10 @@
           <div class="mb-2 mt-2 ps-2 border-start border-3 border-warning" id="boxGSRange">
             <label class="filter-label text-muted" style="font-size:0.7rem;"><i class="fa-solid fa-crosshairs"></i> Bán kính Golden Store so với Shop CJ</label>
             <select class="form-select form-select-sm py-1" id="filterGSRange" style="font-size:0.75rem;">
-              <option value="1km">Trong bán kính 1 km quanh Shop CJ (Tuyến hẹp / Gần nhất)</option>
+              <option value="1km" selected>Trong bán kính 1 km quanh Shop CJ (Mặc định - Gần nhất)</option>
               <option value="1.5km">Trong bán kính 1.5 km quanh Shop CJ</option>
               <option value="2km">Trong bán kính 2 km quanh Shop CJ</option>
-              <option value="3km" selected>Trong bán kính 3 km quanh Shop CJ (Mặc định)</option>
+              <option value="3km">Trong bán kính 3 km quanh Shop CJ</option>
               <option value="5km">Trong bán kính 5 km quanh Shop CJ</option>
               <option value="territory">Toàn bộ địa bàn (Không giới hạn km)</option>
             </select>
@@ -1180,8 +1184,8 @@
       plainCJGroup = L.featureGroup();
       plainGSGroup = L.featureGroup();
 
-      map.addLayer(cjClusterGroup);
       map.addLayer(gsClusterGroup);
+      map.addLayer(cjClusterGroup);
     }
 
     // Normalize Unicode helper
@@ -1303,8 +1307,8 @@
       // 2. Filter Golden Store (Loại A)
       let filteredGS = [];
       if (showGS) {
-        const gsRange = document.getElementById('filterGSRange') ? document.getElementById('filterGSRange').value : '3km';
-        let maxDistKm = 3.0;
+        const gsRange = document.getElementById('filterGSRange') ? document.getElementById('filterGSRange').value : '1km';
+        let maxDistKm = 1.0;
         let checkRadius = true;
         if (gsRange === '1km') maxDistKm = 1.0;
         else if (gsRange === '1.5km') maxDistKm = 1.5;
@@ -1499,17 +1503,17 @@
       const useCluster = document.getElementById('chkCluster').checked;
       const showLabels = document.getElementById('chkShowLabels') ? document.getElementById('chkShowLabels').checked : true;
 
-      // Handle layer attachments
+      // Handle layer attachments (GS first, CJ on top)
       if (useCluster) {
-        if (!map.hasLayer(cjClusterGroup)) map.addLayer(cjClusterGroup);
         if (!map.hasLayer(gsClusterGroup)) map.addLayer(gsClusterGroup);
-        if (map.hasLayer(plainCJGroup)) map.removeLayer(plainCJGroup);
+        if (!map.hasLayer(cjClusterGroup)) map.addLayer(cjClusterGroup);
         if (map.hasLayer(plainGSGroup)) map.removeLayer(plainGSGroup);
+        if (map.hasLayer(plainCJGroup)) map.removeLayer(plainCJGroup);
       } else {
-        if (map.hasLayer(cjClusterGroup)) map.removeLayer(cjClusterGroup);
         if (map.hasLayer(gsClusterGroup)) map.removeLayer(gsClusterGroup);
-        if (!map.hasLayer(plainCJGroup)) map.addLayer(plainCJGroup);
+        if (map.hasLayer(cjClusterGroup)) map.removeLayer(cjClusterGroup);
         if (!map.hasLayer(plainGSGroup)) map.addLayer(plainGSGroup);
+        if (!map.hasLayer(plainCJGroup)) map.addLayer(plainCJGroup);
       }
 
       const cjMarkers = [];
@@ -1517,7 +1521,7 @@
       const latlngs = [];
       const cjRoutePoints = [];
 
-      // 1. Render ALL CJ Outlets (Deep Navy Blue Circles - 30px x 30px)
+      // 1. Render ALL CJ Outlets (Teardrop Pins - 26px x 35px with CJ - Priority zIndex 1000)
       cjList.forEach(r => {
         const lat = r[3];
         const lon = r[4];
@@ -1571,7 +1575,7 @@
           </div>
         `;
 
-        const m = L.marker([lat, lon], { icon }).bindPopup(popup);
+        const m = L.marker([lat, lon], { icon, zIndexOffset: 1000 }).bindPopup(popup);
 
         if (showLabels && r[2]) {
           m.bindTooltip(r[2], {
@@ -1634,7 +1638,7 @@
           </div>
         `;
 
-        const m = L.marker([lat, lon], { icon }).bindPopup(popup);
+        const m = L.marker([lat, lon], { icon, zIndexOffset: 0 }).bindPopup(popup);
 
         if (showLabels && p[2]) {
           m.bindTooltip(p[2], {
@@ -1656,13 +1660,13 @@
         gsMarkers.push(m);
       });
 
-      // Add to corresponding layers
+      // Add to corresponding layers (GS first, CJ on top)
       if (useCluster) {
-        cjClusterGroup.addLayers(cjMarkers);
         gsClusterGroup.addLayers(gsMarkers);
+        cjClusterGroup.addLayers(cjMarkers);
       } else {
-        cjMarkers.forEach(m => plainCJGroup.addLayer(m));
         gsMarkers.forEach(m => plainGSGroup.addLayer(m));
+        cjMarkers.forEach(m => plainCJGroup.addLayer(m));
       }
 
       // Draw Route Path Polyline if day is selected
@@ -2117,7 +2121,7 @@
         document.getElementById('filterFrequency').value = '';
         document.getElementById('filterVisitWeek').value = '';
         document.getElementById('searchKeyword').value = '';
-        document.getElementById('filterGSRange').value = '3km';
+        document.getElementById('filterGSRange').value = '1km';
         document.getElementById('chkShowLabels').checked = true;
         activeDay = '';
         document.querySelectorAll('.day-chip').forEach(c => c.classList.remove('active'));
