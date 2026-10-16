@@ -165,62 +165,50 @@
       overflow: hidden;
     }
 
-    /* Quick Day Bar (Pinned on Top of Map) */
-    .quick-day-bar {
-      position: absolute;
-      top: 10px;
-      left: 60px;
-      right: 10px;
-      z-index: 990;
+    /* Sidebar Day Chips (Lịch thứ viếng thăm) */
+    .sidebar-day-chips {
       display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding: 4px;
-      background: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(6px);
-      border-radius: 30px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-      border: 1px solid rgba(0,0,0,0.08);
-      scrollbar-width: none;
-    }
-    .quick-day-bar::-webkit-scrollbar { display: none; }
-
-    .day-chip {
-      white-space: nowrap;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 0.76rem;
-      font-weight: 600;
-      color: #4A5568;
-      background: #EDF2F7;
-      border: 1px solid transparent;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
+      flex-wrap: wrap;
       gap: 5px;
-      transition: all 0.2s;
+    }
+    .sidebar-day-chips .day-chip {
+      white-space: nowrap;
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: #334155;
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
       user-select: none;
     }
-    .day-chip .chip-count {
-      background: rgba(0,0,0,0.08);
-      padding: 1px 6px;
-      border-radius: 10px;
-      font-size: 0.7rem;
-    }
-    .day-chip:hover {
+    .sidebar-day-chips .day-chip:hover {
       background: #E2E8F0;
+      border-color: #94A3B8;
     }
-    .day-chip.active {
+    .sidebar-day-chips .day-chip.active {
       background: var(--cj-navy);
       color: white;
-      box-shadow: 0 2px 6px rgba(10, 46, 80, 0.4);
+      border-color: var(--cj-navy);
+      box-shadow: 0 2px 4px rgba(10, 46, 80, 0.3);
     }
-    .day-chip.active .chip-count {
-      background: rgba(255,255,255,0.25);
+    .sidebar-day-chips .day-chip .chip-count {
+      background: rgba(0, 0, 0, 0.08);
+      padding: 1px 5px;
+      border-radius: 8px;
+      font-size: 0.68rem;
+    }
+    .sidebar-day-chips .day-chip.active .chip-count {
+      background: rgba(255, 255, 255, 0.25);
       color: white;
     }
 
-    /* Customer Mode Segment & Pills */
+    /* Customer Mode Segment */
     .btn-outline-navy {
       color: #0A2E50;
       border-color: #0A2E50;
@@ -229,60 +217,6 @@
       color: #fff !important;
       background-color: #0A2E50 !important;
       border-color: #0A2E50 !important;
-    }
-    .cust-pill-group {
-      display: flex;
-      gap: 5px;
-      align-items: center;
-      flex-shrink: 0;
-    }
-    .bar-divider {
-      width: 1px;
-      height: 22px;
-      background: #CBD5E1;
-      margin: 0 4px;
-      align-self: center;
-      flex-shrink: 0;
-    }
-    .cust-pill {
-      white-space: nowrap;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 0.76rem;
-      font-weight: 700;
-      color: #4A5568;
-      background: #EDF2F7;
-      border: 1px solid #CBD5E1;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-      user-select: none;
-    }
-    .cust-pill:hover {
-      background: #E2E8F0;
-    }
-    .cust-pill.active {
-      background: var(--cj-navy);
-      color: white;
-      border-color: var(--cj-navy);
-      box-shadow: 0 2px 6px rgba(10, 46, 80, 0.35);
-    }
-    .cust-pill.pill-cj.active {
-      background: #0A2E50;
-      color: white;
-      border-color: #0A2E50;
-      box-shadow: 0 2px 6px rgba(10, 46, 80, 0.4);
-    }
-    .cust-pill.pill-gs.active {
-      background: #D35400;
-      color: white;
-      border-color: #D35400;
-      box-shadow: 0 2px 6px rgba(211, 84, 0, 0.4);
-    }
-    .cust-pill.active i {
-      color: #FFF !important;
     }
 
     /* Permanent Map Point Labels (Tên Khách Hàng) */
@@ -590,11 +524,6 @@
       .sidebar-backdrop.open {
         display: block;
       }
-      .quick-day-bar {
-        left: 55px;
-        right: 10px;
-        top: 8px;
-      }
       .map-legend {
         display: none;
       }
@@ -742,7 +671,22 @@
           </div>
         </div>
 
-        <!-- 7. Chế độ Khách Hàng (1 trong 2 hoặc Cả 2) -->
+        <!-- 7. Lịch Thứ Viếng Thăm (MCP) -->
+        <div class="mb-3">
+          <label class="filter-label"><i class="fa-solid fa-calendar-days"></i> Lịch Thứ Viếng Thăm (MCP)</label>
+          <div class="sidebar-day-chips">
+            <div class="day-chip active" data-day=""><i class="fa-solid fa-calendar me-1"></i>Tất cả</div>
+            <div class="day-chip" data-day="t2">Thứ 2 <span class="chip-count" id="cnt_t2">0</span></div>
+            <div class="day-chip" data-day="t3">Thứ 3 <span class="chip-count" id="cnt_t3">0</span></div>
+            <div class="day-chip" data-day="t4">Thứ 4 <span class="chip-count" id="cnt_t4">0</span></div>
+            <div class="day-chip" data-day="t5">Thứ 5 <span class="chip-count" id="cnt_t5">0</span></div>
+            <div class="day-chip" data-day="t6">Thứ 6 <span class="chip-count" id="cnt_t6">0</span></div>
+            <div class="day-chip" data-day="t7">Thứ 7 <span class="chip-count" id="cnt_t7">0</span></div>
+            <div class="day-chip" data-day="cn">CN <span class="chip-count" id="cnt_cn">0</span></div>
+          </div>
+        </div>
+
+        <!-- 8. Chế độ Khách Hàng (1 trong 2 hoặc Cả 2) -->
         <div class="mb-3">
           <label class="filter-label"><i class="fa-solid fa-users-viewfinder"></i> Chế Độ Chọn Khách Hàng</label>
           <div class="btn-group w-100 mb-2 cust-radio-group" role="group">
@@ -803,34 +747,6 @@
 
     <!-- Main Content Area -->
     <main class="content-area">
-      <!-- Quick Day & Customer Filter Bar (Sticky on Top of Map) -->
-      <div class="quick-day-bar" id="quickDayBar">
-        <!-- Customer Mode Segment Pills -->
-        <div class="cust-pill-group" id="topCustPills">
-          <div class="cust-pill active" data-type="all" title="Hiển thị cả Shop CJ và Golden Store">
-            <i class="fa-solid fa-layer-group"></i><span>Cả 2 loại</span>
-          </div>
-          <div class="cust-pill pill-cj" data-type="cj" title="Chỉ hiển thị Shop CJ (MCP)">
-            <i class="fa-solid fa-circle" style="color: #0A2E50;"></i><span>Shop CJ</span>
-          </div>
-          <div class="cust-pill pill-gs" data-type="gs" title="Chỉ hiển thị Golden Store (Loại A)">
-            <i class="fa-solid fa-square" style="color: #D35400;"></i><span>Golden Store</span>
-          </div>
-        </div>
-
-        <div class="bar-divider"></div>
-
-        <!-- Day Filter Chips -->
-        <div class="day-chip active" data-day=""><i class="fa-solid fa-calendar me-1"></i>Tất cả</div>
-        <div class="day-chip" data-day="t2">Thứ 2 <span class="chip-count" id="cnt_t2">0</span></div>
-        <div class="day-chip" data-day="t3">Thứ 3 <span class="chip-count" id="cnt_t3">0</span></div>
-        <div class="day-chip" data-day="t4">Thứ 4 <span class="chip-count" id="cnt_t4">0</span></div>
-        <div class="day-chip" data-day="t5">Thứ 5 <span class="chip-count" id="cnt_t5">0</span></div>
-        <div class="day-chip" data-day="t6">Thứ 6 <span class="chip-count" id="cnt_t6">0</span></div>
-        <div class="day-chip" data-day="t7">Thứ 7 <span class="chip-count" id="cnt_t7">0</span></div>
-        <div class="day-chip" data-day="cn">CN <span class="chip-count" id="cnt_cn">0</span></div>
-      </div>
-
       <!-- Tab 1: Map View -->
       <div id="mapView"></div>
 
@@ -925,16 +841,7 @@
     function setCustomerType(type) {
       currentCustType = type;
 
-      // 1. Update Top Quick Bar Pills
-      document.querySelectorAll('#topCustPills .cust-pill').forEach(pill => {
-        if (pill.getAttribute('data-type') === type) {
-          pill.classList.add('active');
-        } else {
-          pill.classList.remove('active');
-        }
-      });
-
-      // 2. Update Sidebar Radio Group
+      // 1. Update Sidebar Radio Group
       const radio = document.querySelector(`input[name="custType"][value="${type}"]`);
       if (radio) radio.checked = true;
 
@@ -1718,13 +1625,6 @@
         });
       });
 
-      // Customer Type Mode Handlers (Top Quick Pills)
-      document.querySelectorAll('#topCustPills .cust-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-          setCustomerType(pill.getAttribute('data-type'));
-        });
-      });
-
       // Customer Type Mode Handlers (Sidebar Radio Group)
       document.querySelectorAll('input[name="custType"]').forEach(r => {
         r.addEventListener('change', (e) => {
@@ -1769,7 +1669,6 @@
         document.getElementById('tabTableBtn').classList.remove('active');
         document.getElementById('mapView').style.display = 'block';
         document.getElementById('tableView').style.display = 'none';
-        document.getElementById('quickDayBar').style.display = 'flex';
         map.invalidateSize();
       });
 
@@ -1778,7 +1677,6 @@
         document.getElementById('tabMapBtn').classList.remove('active');
         document.getElementById('mapView').style.display = 'none';
         document.getElementById('tableView').style.display = 'block';
-        document.getElementById('quickDayBar').style.display = 'none';
       });
 
       // Recenter Map
