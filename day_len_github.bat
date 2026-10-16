@@ -1,54 +1,36 @@
 @echo off
-chcp 65001 >nul
-title ĐẨY BẢN ĐỒ LÊN GITHUB - CJ FOODS ROUTE DIGITAL
-
-echo =======================================================================
-echo          TỰ ĐỘNG ĐẨY BẢN ĐỒ LÊN GITHUB (PUBLISH WEB)
-echo              Kho: https://github.com/cjfood/Route_digital
-echo =======================================================================
-echo.
-
-set "GIT_CMD=C:\Users\MinhHien-Sales\AppData\Local\Programs\MinGit\cmd\git.exe"
-
-if not exist "%GIT_CMD%" (
-    set "GIT_CMD=git"
-)
-
+title DAY LEN GITHUB - CJ FOODS ROUTE DIGITAL
 cd /d "%~dp0"
 
-echo [1/4] Đang kiểm tra các file thay đổi...
-"%GIT_CMD%" add .
+set "GIT=C:\Users\MinhHien-Sales\AppData\Local\Programs\MinGit\cmd\git.exe"
 
-echo [2/4] Đang đóng gói dữ liệu bản đồ...
-set datetime=%date% %time%
-"%GIT_CMD%" commit -m "Cap nhat ban do CJ Golden Route Map - %datetime%"
-
-echo [3/4] Đang thiết lập nhánh chính (main)...
-"%GIT_CMD%" branch -M main
-
-echo [4/4] Đang tải lên GitHub (cjfood/Route_digital)...
-echo.
-echo * Luu y: Neu trinh duyet bat len cua so dang nhap GitHub, ban chi can
-echo   bam nut "Authorize" hoac "Sign in with your browser" de xac thuc.
+echo =======================================================================
+echo          DANG DONG GOI VA DAY LEN GITHUB
+echo          Kho: https://github.com/cjfood/Route_digital
+echo =======================================================================
 echo.
 
-"%GIT_CMD%" push -u origin main
+echo [1/4] Dong goi du lieu...
+"%GIT%" add .
 
-if %errorlevel% neq 0 (
-    echo.
-    echo =======================================================================
-    echo [LOI] Khong the day len GitHub!
-    echo Vui long kiem tra lai ket noi Internet hoac quyen truy cap tai khoan.
-    echo =======================================================================
-) else (
-    echo.
-    echo =======================================================================
-    echo [THANH CONG] Toan bo ban do da duoc day len GitHub thanh cong!
-    echo.
-    echo Link trang web cua ban (sau 1-2 phut GitHub khoi tao xong):
-    echo    👉 https://cjfood.github.io/Route_digital/
-    echo =======================================================================
-)
+echo [2/4] Tao ban ghi commit...
+"%GIT%" commit -m "Update-CJ-Golden-Route-Map"
 
+echo [3/4] Chon nhanh main...
+"%GIT%" branch -M main
+
+echo [4/4] Dang day du lieu len GitHub...
+echo.
+echo * Luu y: Neu trinh duyet bat len cua so dang nhap, hay bam Authorize hoac Sign in.
+echo.
+
+"%GIT%" push -u origin main
+
+echo.
+echo =======================================================================
+echo   Hoan tat! Neu bao xong hoac Everything up-to-date,
+echo   ban hay vao link duoi day tren trinh duyet (doi 1-2 phut):
+echo   Link web: https://cjfood.github.io/Route_digital/
+echo =======================================================================
 echo.
 pause
