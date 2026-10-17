@@ -162,16 +162,26 @@ def is_valid_gps(lat, lon):
 
 def import_cj_data(excel):
     os.makedirs('Shop CJ', exist_ok=True)
-    files = [f for f in glob.glob('Shop CJ/*.xls*') if not os.path.basename(f).startswith('~$')]
+    search_dirs = [
+        'Shop CJ',
+        os.path.join('..', 'Data_Raw', 'Route'),
+        os.path.join('..', 'Data_Raw', 'MCP_GT')
+    ]
+    files = []
+    for d in search_dirs:
+        if os.path.exists(d):
+            found = [f for f in glob.glob(os.path.join(d, '*.xls*')) if not os.path.basename(f).startswith('~$')]
+            files.extend(found)
     if not files:
-        print("[!] Không tìm thấy file trong thư mục 'Shop CJ/'")
+        print("[!] Không tìm thấy file trong thư mục 'Shop CJ/' hoặc 'Data_Raw/Route/'")
         return
     # Tự động chọn file mới nhất theo thời gian sửa đổi nếu có nhiều file
     files.sort(key=os.path.getmtime, reverse=True)
     fpath = os.path.abspath(files[0])
-    print(f"[1/2] Đang xử lý Shop CJ: {os.path.basename(fpath)}...")
+    src_info = f"(từ thư mục: {os.path.dirname(fpath)})"
+    print(f"[1/2] Đang xử lý Shop CJ: {os.path.basename(fpath)} {src_info}...")
     if len(files) > 1:
-        print(f"  (Lưu ý: Tìm thấy {len(files)} file trong 'Shop CJ/', đang nạp file mới nhất theo thời gian sửa đổi)")
+        print(f"  (Lưu ý: Tìm thấy {len(files)} file phù hợp, tự động nạp file mới nhất theo thời gian sửa đổi)")
     t0 = time.time()
     
     wb = excel.Workbooks.Open(fpath, ReadOnly=True)
@@ -302,16 +312,26 @@ def import_cj_data(excel):
 
 def import_potential_data(excel):
     os.makedirs('Shop Potential', exist_ok=True)
-    files = [f for f in glob.glob('Shop Potential/*.xls*') if not os.path.basename(f).startswith('~$')]
+    search_dirs = [
+        'Shop Potential',
+        os.path.join('..', 'Data_Raw', 'Shop_Potential'),
+        os.path.join('..', 'Data_Raw', 'Potential')
+    ]
+    files = []
+    for d in search_dirs:
+        if os.path.exists(d):
+            found = [f for f in glob.glob(os.path.join(d, '*.xls*')) if not os.path.basename(f).startswith('~$')]
+            files.extend(found)
     if not files:
-        print("[!] Không tìm thấy file trong thư mục 'Shop Potential/'")
+        print("[!] Không tìm thấy file trong thư mục 'Shop Potential/' hoặc 'Data_Raw/Shop_Potential/'")
         return
     # Tự động chọn file mới nhất theo thời gian sửa đổi nếu có nhiều file
     files.sort(key=os.path.getmtime, reverse=True)
     fpath = os.path.abspath(files[0])
-    print(f"\n[2/2] Đang xử lý Shop Potential: {os.path.basename(fpath)}...")
+    src_info = f"(từ thư mục: {os.path.dirname(fpath)})"
+    print(f"\n[2/2] Đang xử lý Shop Potential: {os.path.basename(fpath)} {src_info}...")
     if len(files) > 1:
-        print(f"  (Lưu ý: Tìm thấy {len(files)} file trong 'Shop Potential/', đang nạp file mới nhất theo thời gian sửa đổi)")
+        print(f"  (Lưu ý: Tìm thấy {len(files)} file phù hợp, tự động nạp file mới nhất theo thời gian sửa đổi)")
     t0 = time.time()
     
     wb = excel.Workbooks.Open(fpath, ReadOnly=True)
