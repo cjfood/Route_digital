@@ -120,7 +120,14 @@
       flex-direction: column;
       z-index: 1010;
       box-shadow: 2px 0 10px rgba(0,0,0,0.06);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @media (min-width: 769px) {
+      .sidebar.desktop-collapsed {
+        margin-left: calc(-1 * var(--sidebar-w)) !important;
+        box-shadow: none;
+        pointer-events: none;
+      }
     }
     .sidebar-header {
       padding: 12px 14px;
@@ -693,7 +700,7 @@
   <!-- 1. Header -->
   <header class="app-header">
     <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-light d-md-none p-1 px-2" id="btnToggleMobileSidebar" title="Mở bộ lọc">
+      <button class="btn btn-sm btn-outline-light p-1 px-2" id="btnToggleSidebar" title="Ẩn / Hiện bảng bộ lọc (Menu)">
         <i class="fa-solid fa-bars fs-5"></i>
       </button>
 
@@ -788,10 +795,17 @@
     <!-- Sidebar Filters -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <span><i class="fa-solid fa-filter me-2 text-primary"></i>Bộ Lọc Tuyến Bán Hàng</span>
+        <div class="d-flex align-items-center gap-1.5">
+          <i class="fa-solid fa-filter me-1 text-primary"></i>
+          <span>Bộ Lọc Tuyến Bán Hàng</span>
+        </div>
         <div class="d-flex align-items-center gap-2">
           <button class="btn btn-link btn-sm p-0 text-decoration-none" id="btnResetFilters">
             <i class="fa-solid fa-rotate-left me-1"></i>Reset
+          </button>
+          <button class="btn btn-sm btn-outline-secondary border-0 p-1 px-2 d-none d-md-inline-flex align-items-center gap-1 text-secondary" id="btnCollapseSidebar" title="Thu gọn bảng bộ lọc để xem toàn bản đồ">
+            <i class="fa-solid fa-chevron-left"></i>
+            <span style="font-size: 11px; font-weight: 600;">Thu gọn</span>
           </button>
           <button class="btn btn-sm btn-close d-md-none" id="btnCloseMobileSidebar"></button>
         </div>
@@ -959,6 +973,9 @@
       </div>
 
       <!-- Tab 1: Map View -->
+      <button class="btn btn-sm btn-light border shadow rounded-pill fw-bold text-dark px-3 py-1.5 d-none align-items-center gap-1.5" id="btnExpandSidebarDesktop" style="position: absolute; top: 14px; left: 14px; z-index: 1000;" title="Mở lại bảng bộ lọc">
+        <i class="fa-solid fa-filter text-primary"></i> <span>Mở Bộ Lọc</span>
+      </button>
       <div id="mapView"></div>
 
       <!-- Mobile Floating Action Buttons -->
@@ -1975,7 +1992,7 @@
       XLSX.writeFile(wb, `Danh_Sach_${modeTag}_${filterTarget.replace(/[\s\/\\]+/g, '_')}.xlsx`);
     }
 
-    // Mobile Drawer Controls
+    // Desktop & Mobile Sidebar Controls
     function openMobileSidebar() {
       document.getElementById('sidebar').classList.add('open');
       document.getElementById('sidebarBackdrop').classList.add('open');
@@ -1984,6 +2001,27 @@
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('sidebarBackdrop').classList.remove('open');
     }
+    function toggleDesktopSidebar(forceExpand) {
+      const sidebar = document.getElementById('sidebar');
+      const expandBtn = document.getElementById('btnExpandSidebarDesktop');
+      if (!sidebar) return;
+
+      const isCurrentlyCollapsed = sidebar.classList.contains('desktop-collapsed');
+      const shouldCollapse = (typeof forceExpand === 'boolean') ? !forceExpand : !isCurrentlyCollapsed;
+
+      if (shouldCollapse) {
+        sidebar.classList.add('desktop-collapsed');
+        if (expandBtn) expandBtn.classList.remove('d-none');
+      } else {
+        sidebar.classList.remove('desktop-collapsed');
+        if (expandBtn) expandBtn.classList.add('d-none');
+      }
+      setTimeout(() => {
+        if (typeof map !== 'undefined' && map) {
+          map.invalidateSize();
+        }
+      }, 320);
+    }
 
     // Event Listeners
     document.addEventListener('DOMContentLoaded', () => {
@@ -1991,8 +2029,25 @@
       populateFilters(false);
       applyFilters();
 
-      // Mobile Drawer Toggles
-      document.getElementById('btnToggleMobileSidebar').addEventListener('click', openMobileSidebar);
+      // Sidebar Toggles (Unified Desktop & Mobile)
+      const btnToggle = document.getElementById('btnToggleSidebar') || document.getElementById('btnToggleMobileSidebar');
+      if (btnToggle) {
+        btnToggle.addEventListener('click', () => {
+          if (window.innerWidth <= 768) {
+            openMobileSidebar();
+          } else {
+            toggleDesktopSidebar();
+          }
+        });
+      }
+      const btnCollapse = document.getElementById('btnCollapseSidebar');
+      if (btnCollapse) {
+        btnCollapse.addEventListener('click', () => toggleDesktopSidebar(false));
+      }
+      const btnExpand = document.getElementById('btnExpandSidebarDesktop');
+      if (btnExpand) {
+        btnExpand.addEventListener('click', () => toggleDesktopSidebar(true));
+      }
       document.getElementById('fabOpenFilter').addEventListener('click', openMobileSidebar);
       document.getElementById('btnCloseMobileSidebar').addEventListener('click', closeMobileSidebar);
       document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileSidebar);
