@@ -8,9 +8,9 @@ echo ===================================================================
 echo     CJ FOODS - CÔNG CỤ CẬP NHẬT DỮ LIỆU TUYẾN MASTER DMS
 echo ===================================================================
 echo.
-echo [1/3] Đang kiểm tra file nguồn trong các thư mục:
-echo   - Thư mục 'Shop CJ'
-echo   - Thư mục 'Shop Potential'
+echo [1/3] Đang kiểm tra file nguồn trong thư mục Data_Raw:
+echo   - Thư mục 'Data_Raw\Route' (Kế hoạch tuyến MCP)
+echo   - Thư mục 'Data_Raw\Shop_Potential' (Điểm bán tiềm năng)
 echo.
 echo [2/3] Đang tiến hành đọc và đồng bộ hóa vào Master Database...
 echo       (Quá trình xử lý ~270.000 điểm bán mất khoảng 30 - 50 giây)

@@ -163,9 +163,8 @@ def is_valid_gps(lat, lon):
 def import_cj_data(excel):
     os.makedirs('Shop CJ', exist_ok=True)
     search_dirs = [
-        'Shop CJ',
         os.path.join('..', 'Data_Raw', 'Route'),
-        os.path.join('..', 'Data_Raw', 'MCP_GT')
+        'Shop CJ'
     ]
     files = []
     for d in search_dirs:
