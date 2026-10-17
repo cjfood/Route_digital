@@ -2,7 +2,11 @@
 title DAY LEN GITHUB - CJ FOODS ROUTE DIGITAL
 cd /d "%~dp0"
 
-set "GIT=C:\Users\MinhHien-Sales\AppData\Local\Programs\MinGit\cmd\git.exe"
+if exist "C:\Users\MinhHien-Sales\AppData\Local\Programs\MinGit\cmd\git.exe" (
+    set "GIT=C:\Users\MinhHien-Sales\AppData\Local\Programs\MinGit\cmd\git.exe"
+) else (
+    set "GIT=git"
+)
 
 echo =======================================================================
 echo          DANG DONG GOI VA DAY LEN GITHUB

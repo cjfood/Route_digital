@@ -2,6 +2,7 @@
 chcp 65001 >nul
 title CJ Foods - Cập Nhật Dữ Liệu Tuyến Master DMS
 color 0A
+cd /d "%~dp0"
 
 echo ===================================================================
 echo     CJ FOODS - CÔNG CỤ CẬP NHẬT DỮ LIỆU TUYẾN MASTER DMS
@@ -21,16 +22,31 @@ powershell -NoProfile -Command "Get-Process excel -ErrorAction SilentlyContinue 
 REM Chạy script ETL Python
 python etl_master.py
 
-if %ERRORLEVEL% EQU 0 (
-    echo.
-    echo ===================================================================
-    echo    ĐÃ CẬP NHẬT THÀNH CÔNG DỮ LIỆU MASTER DATABASE!
-    echo    Bạn chỉ cần tải lại trang web hoặc mở lại 'run_app.bat' để xem.
-    echo ===================================================================
-) else (
-    echo.
-    echo [LỖI] Có lỗi xảy ra trong quá trình cập nhật. Vui lòng kiểm tra lại file Excel!
-)
+if %ERRORLEVEL% EQU 0 goto :SUCCESS
+goto :FAILED
 
+:SUCCESS
+echo.
+echo ===================================================================
+echo    ĐÃ CẬP NHẬT THÀNH CÔNG DỮ LIỆU MASTER DATABASE!
+echo    File dms_data.js đã được tạo mới hoàn tất.
+echo ===================================================================
+echo.
+echo Bạn có thể mở trực tiếp 'index.html' để kiểm tra bản đồ trên máy tính.
+echo.
+set /p PUSH_CHOICE=">> Ban co muon day du lieu moi len GitHub Pages (Web) luon khong? (Y/N, mac dinh Y): "
+if "%PUSH_CHOICE%"=="" set PUSH_CHOICE=Y
+if /i "%PUSH_CHOICE%"=="Y" (
+    echo.
+    call day_len_github.bat
+)
+goto :END
+
+:FAILED
+echo.
+echo [LỖI] Có lỗi xảy ra trong quá trình cập nhật. Vui lòng kiểm tra lại file Excel!
+goto :END
+
+:END
 echo.
 pause

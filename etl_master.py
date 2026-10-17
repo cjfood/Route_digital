@@ -141,6 +141,8 @@ def parse_float(v):
     if v is None:
         return 0.0
     try:
+        if isinstance(v, str):
+            v = v.strip().replace(',', '.')
         f = float(v)
         if f != f: # NaN
             return 0.0
@@ -159,26 +161,32 @@ def is_valid_gps(lat, lon):
     return 0
 
 def import_cj_data(excel):
+    os.makedirs('Shop CJ', exist_ok=True)
     files = [f for f in glob.glob('Shop CJ/*.xls*') if not os.path.basename(f).startswith('~$')]
     if not files:
-        print("Không tìm thấy file trong thư mục Shop CJ")
+        print("[!] Không tìm thấy file trong thư mục 'Shop CJ/'")
         return
+    # Tự động chọn file mới nhất theo thời gian sửa đổi nếu có nhiều file
+    files.sort(key=os.path.getmtime, reverse=True)
     fpath = os.path.abspath(files[0])
     print(f"[1/2] Đang xử lý Shop CJ: {os.path.basename(fpath)}...")
+    if len(files) > 1:
+        print(f"  (Lưu ý: Tìm thấy {len(files)} file trong 'Shop CJ/', đang nạp file mới nhất theo thời gian sửa đổi)")
     t0 = time.time()
     
     wb = excel.Workbooks.Open(fpath, ReadOnly=True)
-    ws = wb.Sheets(1)
-    total_rows = ws.UsedRange.Rows.Count
-    print(f"Tổng số dòng trong sheet: {total_rows}")
-    
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute('DELETE FROM outlets_cj') # Làm mới dữ liệu CJ
-    
-    chunk_size = 10000
-    start_row = 6 # Dữ liệu bắt đầu từ dòng 6 (dòng 5 là header)
-    inserted = 0
+    try:
+        ws = wb.Sheets(1)
+        total_rows = ws.UsedRange.Rows.Count
+        print(f"Tổng số dòng trong sheet: {total_rows}")
+        
+        conn = sqlite3.connect(DB_PATH, timeout=60)
+        cur = conn.cursor()
+        cur.execute('DELETE FROM outlets_cj') # Làm mới dữ liệu CJ
+        
+        chunk_size = 10000
+        start_row = 6 # Dữ liệu bắt đầu từ dòng 6 (dòng 5 là header)
+        inserted = 0
     
     while start_row <= total_rows:
         end_row = min(start_row + chunk_size - 1, total_rows)
@@ -284,32 +292,42 @@ def import_cj_data(excel):
         print(f"  -> Đã nạp {inserted}/{total_rows - 5} dòng CJ ({inserted*100//(total_rows-5)}%)...")
         start_row = end_row + 1
         
-    wb.Close(False)
-    conn.close()
+    finally:
+        try:
+            wb.Close(False)
+        except Exception:
+            pass
+        conn.close()
     print(f"Hoàn thành nạp Shop CJ: {inserted} điểm bán trong {time.time()-t0:.2f}s")
 
 def import_potential_data(excel):
+    os.makedirs('Shop Potential', exist_ok=True)
     files = [f for f in glob.glob('Shop Potential/*.xls*') if not os.path.basename(f).startswith('~$')]
     if not files:
-        print("Không tìm thấy file trong thư mục Shop Potential")
+        print("[!] Không tìm thấy file trong thư mục 'Shop Potential/'")
         return
+    # Tự động chọn file mới nhất theo thời gian sửa đổi nếu có nhiều file
+    files.sort(key=os.path.getmtime, reverse=True)
     fpath = os.path.abspath(files[0])
     print(f"\n[2/2] Đang xử lý Shop Potential: {os.path.basename(fpath)}...")
+    if len(files) > 1:
+        print(f"  (Lưu ý: Tìm thấy {len(files)} file trong 'Shop Potential/', đang nạp file mới nhất theo thời gian sửa đổi)")
     t0 = time.time()
     
     wb = excel.Workbooks.Open(fpath, ReadOnly=True)
-    ws = wb.Sheets(1)
-    total_rows = ws.UsedRange.Rows.Count
-    print(f"Tổng số dòng trong sheet: {total_rows}")
-    
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute('DELETE FROM outlets_potential') # Làm mới dữ liệu Potential
-    
-    chunk_size = 20000
-    start_row = 2 # Dòng 1 là header
-    inserted = 0
-    type_a_count = 0
+    try:
+        ws = wb.Sheets(1)
+        total_rows = ws.UsedRange.Rows.Count
+        print(f"Tổng số dòng trong sheet: {total_rows}")
+        
+        conn = sqlite3.connect(DB_PATH, timeout=60)
+        cur = conn.cursor()
+        cur.execute('DELETE FROM outlets_potential') # Làm mới dữ liệu Potential
+        
+        chunk_size = 20000
+        start_row = 2 # Dòng 1 là header
+        inserted = 0
+        type_a_count = 0
     
     while start_row <= total_rows:
         end_row = min(start_row + chunk_size - 1, total_rows)
@@ -374,8 +392,12 @@ def import_potential_data(excel):
         print(f"  -> Đã nạp {inserted}/{total_rows - 1} dòng Potential ({inserted*100//(total_rows-1)}%)... [Loại A: {type_a_count}]")
         start_row = end_row + 1
         
-    wb.Close(False)
-    conn.close()
+    finally:
+        try:
+            wb.Close(False)
+        except Exception:
+            pass
+        conn.close()
     print(f"Hoàn thành nạp Shop Potential: {inserted} điểm bán trong {time.time()-t0:.2f}s")
     print(f"Tổng số KH Loại A: {type_a_count}")
 
@@ -443,7 +465,11 @@ def main():
         import_cj_data(excel)
         import_potential_data(excel)
     finally:
-        excel.Quit()
+        try:
+            excel.Quit()
+        except Exception:
+            pass
+        del excel
         
     export_static_js()
     print(f"\n=== ĐÃ HOÀN TẤT TOÀN BỘ TRONG {time.time()-t_start:.2f} GIÂY! ===")
